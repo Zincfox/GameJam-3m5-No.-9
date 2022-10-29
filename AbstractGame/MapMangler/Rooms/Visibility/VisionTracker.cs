@@ -42,6 +42,17 @@ namespace MapMangler.Rooms.Visibility
 
         public class EntityVisionTracker : VisionTracker
         {
+            public readonly bool seeIntoAdjacientRooms;
+
+            public EntityVisionTracker() : this(seeIntoAdjacientRooms: false)
+            {
+
+            }
+
+            public EntityVisionTracker(bool seeIntoAdjacientRooms = false)
+            {
+                this.seeIntoAdjacientRooms = seeIntoAdjacientRooms;
+            }
 
             protected readonly Dictionary<Entity, ISet<Room>> visibleEntityRooms = new Dictionary<Entity, ISet<Room>>();
 
@@ -85,10 +96,11 @@ namespace MapMangler.Rooms.Visibility
                 {
                     location.parentRoom
                 };
-                foreach (var segment in location.NeighbouringSegments)
-                {
-                    visible.Add(segment.parentRoom);
-                }
+                if (seeIntoAdjacientRooms)
+                    foreach (var segment in location.NeighbouringSegments)
+                    {
+                        visible.Add(segment.parentRoom);
+                    }
                 return visible;
             }
 
@@ -122,7 +134,7 @@ namespace MapMangler.Rooms.Visibility
             }
             private ISet<Room> CalculateVisibleRoomUnion(Entity exceptEntity)
             {
-                return visibleEntityRooms.SelectMany(entry => entry.Key == exceptEntity ? Enumerable.Empty<Room>(): entry.Value).ToHashSet();
+                return visibleEntityRooms.SelectMany(entry => entry.Key == exceptEntity ? Enumerable.Empty<Room>() : entry.Value).ToHashSet();
             }
 
             public class EntityVisionEventArgs : VisionEventArgs
@@ -131,7 +143,7 @@ namespace MapMangler.Rooms.Visibility
                 public EntityVisionEventArgs(ISet<Room> gainedVision, ISet<Room> lostVision, Entity entity) : base(gainedVision, lostVision)
                 {
                     this.entity = entity;
-                }   
+                }
             }
         }
     }
