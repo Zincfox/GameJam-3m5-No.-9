@@ -10,4 +10,9 @@ public class HotspotBehaviour : MonoBehaviour
     {
         text = GetComponentInChildren<TMP_Text>();
     }
+
+    private void Came(Transform target)
+    {
+        //Vector3 screenPos = cam.WorldToScreenPoint(target.position);
+    }
 }
