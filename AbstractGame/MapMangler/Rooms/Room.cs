@@ -38,6 +38,7 @@ namespace MapMangler.Rooms
 
         internal void AddEntity(Entity entity)
         {
+            if (entities.Contains(entity)) return;
             entities.Add(entity);
             EntitiesChangeEvent?.Invoke(this, new RoomContentChangeEventArgs(this, entity, false));
         }

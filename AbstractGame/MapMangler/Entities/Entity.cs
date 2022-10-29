@@ -21,7 +21,7 @@ namespace MapMangler.Entities
             {
                 int oldHealth = health;
                 if (value < 0) value = 0;
-                if (oldHealth == health)
+                if (oldHealth == value)
                     return;
                 health = value;
                 HealthChangeEvent?.Invoke(this, new EntityValueChangeEventArgs<int>(this, oldHealth, value));
@@ -40,7 +40,7 @@ namespace MapMangler.Entities
             set
             {
                 Room? oldLocation = location;
-                if (oldLocation == location)
+                if (oldLocation == value)
                     return;
                 location = value;
                 oldLocation?.RemoveEntity(this);
