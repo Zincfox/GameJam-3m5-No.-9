@@ -49,3 +49,6 @@ Developers do not need to include all 20 topics in their project, but they shoul
 | Medium   | 3         | 6        | 2             | 0.375              |
 | Hard     | 2         | 7        | 2             | 0.1875             |
 | Hell     | 3         | 7        | 3             | 0.1875             |
+
+## Attributions
+- MidJourney AI Generated Assets user under Creative Commons Noncommercial 4.0 Attribution International License. ( https://creativecommons.org/licenses/by-nc/4.0/legalcode )
