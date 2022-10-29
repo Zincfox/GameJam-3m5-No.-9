@@ -6,7 +6,7 @@ using UnityEditor;
 #endif
 
 [ExecuteInEditMode]
-public class HotspotAnchor : MonoBehaviour
+public class HotspotWorldPositionAnchor : MonoBehaviour
 {
     [SerializeField]
     private HotspotBehaviour uiHotspot;
