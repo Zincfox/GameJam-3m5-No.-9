@@ -2,10 +2,6 @@
 using UnityEngine.Assertions;
 using System.Collections;
 
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
-
 [ExecuteAlways]
 public class HotspotWorldPositionAnchor : MonoBehaviour
 {
@@ -15,7 +11,10 @@ public class HotspotWorldPositionAnchor : MonoBehaviour
     [SerializeField]
     private MeshRenderer dummyMeshRenderer;
 
-#if UNITY_EDITOR
+    [Header("Debug Only")]
+    [SerializeField]
+    private GameObject canvasElementPrefab;
+
     private void Awake()
     {
         if (uiHotspot == null)
@@ -28,7 +27,6 @@ public class HotspotWorldPositionAnchor : MonoBehaviour
             InitRemainingFields();
         }
     }
-#endif
 
     private void Start()
     {
@@ -49,15 +47,11 @@ public class HotspotWorldPositionAnchor : MonoBehaviour
         var hotspotGroup = GameObject.Find("Hotspot CanvasGroup"); // TODO
         Assert.IsNotNull(hotspotGroup, "Hotspotgroup not found");
 
-#if UNITY_EDITOR
-        var prefab = (GameObject) AssetDatabase.LoadAssetAtPath("Assets/Hotspots/Prefabs/Hotspot.prefab", typeof(GameObject));
-#endif
-        Assert.IsNotNull(prefab, "Hotspot prefab not found");
-
-        var uiElement = Instantiate(prefab);
+        Assert.IsNotNull(canvasElementPrefab, "Hotspot prefab not found");
+        var uiElement = Instantiate(canvasElementPrefab);
         uiElement.transform.SetParent(hotspotGroup.transform);
         uiElement.transform.localScale = Vector3.one;
-        StartCoroutine(ChangeCanvasElementNameInNextFrame(uiElement, prefab));
+        StartCoroutine(ChangeCanvasElementNameInNextFrame(uiElement, canvasElementPrefab));
         
         uiHotspot = uiElement.GetComponent<HotspotBehaviour>();
         Assert.IsNotNull(uiHotspot, $"Could not find {nameof(HotspotBehaviour)} on {uiElement.name}");
@@ -67,7 +61,7 @@ public class HotspotWorldPositionAnchor : MonoBehaviour
     private IEnumerator ChangeCanvasElementNameInNextFrame(GameObject target, GameObject prefab)
     {
         yield return null;
-        target.name = $"{prefab.name} of {gameObject.name}";
+        target.name = $"{prefab.name} -> [{gameObject.name}]";
     }
 
     private void InitRemainingFields()
