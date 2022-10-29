@@ -45,6 +45,8 @@ namespace MapMangler.Entities
             }
         }
 
+        public readonly StatBlock stats = new StatBlock();
+
 
         public readonly int entityID;
 
@@ -61,6 +63,15 @@ namespace MapMangler.Entities
                 oldLocation?.RemoveEntity(this);
                 value?.AddEntity(this);
                 LocationChangeEvent?.Invoke(this, new EntityValueChangeEventArgs<RoomSegment?>(this, oldLocation, value));
+            }
+        }
+
+        public void ReceiveBlockableDamage(int damage)
+        {
+            damage -= stats.Armor;
+            if(damage > 0)
+            {
+                Health -= damage;
             }
         }
 

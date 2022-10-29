@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Linq;
 using MapMangler.Entities;
 
 namespace MapMangler.Rooms
@@ -16,6 +17,11 @@ namespace MapMangler.Rooms
         private readonly List<RoomSegment> segments = new List<RoomSegment>();
 
         public IReadOnlyList<RoomSegment> Segments { get => segments; }
+
+        public IEnumerable<Entity> GetRoomEntities()
+        {
+            return Segments.SelectMany(s => s.Entities);
+        }
 
         public RoomSegment CreateSegment(int id)
         {
