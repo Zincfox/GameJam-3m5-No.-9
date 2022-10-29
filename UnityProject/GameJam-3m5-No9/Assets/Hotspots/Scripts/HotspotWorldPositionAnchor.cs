@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.Assertions;
+using System.Collections;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -49,8 +50,12 @@ public class HotspotWorldPositionAnchor : MonoBehaviour
 
         var uiElement = Instantiate(prefab);
         uiElement.transform.SetParent(hotspotGroup.transform);
+        StartCoroutine(UpdateName(uiElement, prefab));
+        
+
         uiHotspot = uiElement.GetComponent<HotspotBehaviour>();
         Assert.IsNotNull(uiHotspot, $"Could not find {nameof(HotspotBehaviour)} on {uiElement.name}");
+        uiHotspot.SetOwner(this);
 
         var childName = "HotspotAnchor Visual Helper";
         var helper = gameObject.FindChildByName(childName);
@@ -58,5 +63,11 @@ public class HotspotWorldPositionAnchor : MonoBehaviour
 
         dummyMeshRenderer = helper.GetComponent<MeshRenderer>();
         Assert.IsNotNull(dummyMeshRenderer, $"Could not find MeshRenderer component on {dummyMeshRenderer.name}");
+    }
+
+    private IEnumerator UpdateName(GameObject target, GameObject prefab)
+    {
+        yield return null;
+        target.name = $"{prefab.name} of {gameObject.name}";
     }
 }
