@@ -8,6 +8,7 @@ namespace MapMangler.Rooms
     {
         public int RoomID { get; set; }
 
-        public IList<Room> Rooms = new List<Room>();
+        public IList<Room> Neighbours = new List<Room>();
+
     }
 }
