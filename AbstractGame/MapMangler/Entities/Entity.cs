@@ -31,27 +31,43 @@ namespace MapMangler.Entities
         }
 
 
+        protected int actions;
+        public int Actions
+        {
+            get => actions;
+            set
+            {
+                int oldActions = health;
+                if (oldActions == value)
+                    return;
+                actions = value;
+                ActionsChangeEvent?.Invoke(this, new EntityValueChangeEventArgs<int>(this, oldActions, value));
+            }
+        }
+
+
         public readonly int entityID;
 
-        private Room? location = null;
-        public Room? Location
+        private RoomSegment? location = null;
+        public RoomSegment? Location
         {
             get => location;
             set
             {
-                Room? oldLocation = location;
+                var oldLocation = location;
                 if (oldLocation == value)
                     return;
                 location = value;
                 oldLocation?.RemoveEntity(this);
                 value?.AddEntity(this);
-                LocationChangeEvent?.Invoke(this, new EntityValueChangeEventArgs<Room?>(this, oldLocation, value));
+                LocationChangeEvent?.Invoke(this, new EntityValueChangeEventArgs<RoomSegment?>(this, oldLocation, value));
             }
         }
 
-        public event EventHandler<EntityValueChangeEventArgs<Room?>>? LocationChangeEvent;
+        public event EventHandler<EntityValueChangeEventArgs<RoomSegment?>>? LocationChangeEvent;
         public event EventHandler<EntityValueChangeEventArgs<int>>? HealthChangeEvent;
         public event EventHandler<EntityDeathEventArgs>? DeathEvent;
+        public event EventHandler<EntityValueChangeEventArgs<int>>? ActionsChangeEvent;
 
         public class EntityValueChangeEventArgs<T> : EventArgs
         {
