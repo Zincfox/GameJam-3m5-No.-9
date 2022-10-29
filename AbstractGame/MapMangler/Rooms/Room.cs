@@ -9,19 +9,40 @@ namespace MapMangler.Rooms
     {
         public int RoomID { get; set; }
 
-        public IList<Room> Neighbours = new List<Room>();
+        public IReadOnlyList<Room> NeighbouringRooms { get => neighbours; }
 
-        private List<Entity> entities = new List<Entity>();
+        private readonly List<Room> neighbours = new List<Room>();
+
+        private readonly List<RoomSegment> segments = new List<RoomSegment>();
+
+        public IReadOnlyList<RoomSegment> Segments { get => segments; }
+
+        public RoomSegment CreateSegment(int id)
+        {
+            RoomSegment segment = new RoomSegment(id, this);
+            segments.Add(segment);
+            return segment;
+        }
+
+        public static void ConnectRooms(Room first, Room second)
+        {
+            if (!first.neighbours.Contains(second))
+                first.neighbours.Add(second);
+            if (!second.neighbours.Contains(first))
+                second.neighbours.Add(first);
+        }
+
+        private readonly List<Entity> entities = new List<Entity>();
 
         public IReadOnlyList<Entity> Entities { get => entities; }
 
-        internal void addEntity(Entity entity)
+        internal void AddEntity(Entity entity)
         {
             entities.Add(entity);
             EntitiesChangeEvent?.Invoke(this, new RoomContentChangeEventArgs(this, entity, false));
         }
 
-        internal void removeEntity(Entity entity)
+        internal void RemoveEntity(Entity entity)
         {
             if (!entities.Remove(entity)) return;
             EntitiesChangeEvent?.Invoke(this, new RoomContentChangeEventArgs(this, entity, true));
