@@ -1,18 +1,39 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Room : MonoBehaviour
 {
-    // Start is called before the first frame update
+    [SerializeField]
+    private RoomSegment[] roomSegements;
+
+    [SerializeField]
+    private Room[] roomNeighbors;
+
+    public MapMangler.Rooms.Room RoomArea { get; } = new MapMangler.Rooms.Room();
+
     void Start()
     {
-        
+        InitRoomSegments();
+        ConnectRooms();
     }
 
-    // Update is called once per frame
-    void Update()
+    private void InitRoomSegments ()
     {
-        
+        var room = RoomArea;
+        foreach (var segment in roomSegements)
+        {
+            var id = segment.GetInstanceID();
+            room.CreateSegment(id);
+        }
+        Debug.Log(room.Segments.Count);
+    }
+
+    private void ConnectRooms()
+    {
+        var room = RoomArea;
+        foreach (var neigbor in roomNeighbors)
+        {
+            MapMangler.Rooms.Room.ConnectRooms(room, neigbor.RoomArea);
+        }
+        Debug.Log(room.NeighbouringRooms.Count);
     }
 }
