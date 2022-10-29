@@ -26,3 +26,26 @@ Developers do not need to include all 20 topics in their project, but they shoul
 - direktion
 - ausgegrenzt
 - klauenhand
+
+## Dificulties
+
+| 4 Player | Player HP | Enemy HP | Enemy Actions | 1 turn kill chance |
+|----------|-----------|----------|---------------|--------------------|
+| Easy     | 3         | 11       | 2             | 0.4140625          |
+| Medium   | 3         | 12       | 2             | 0.2578125          |
+| Hard     | 2         | 13       | 2             | 0.1367188          |
+| Hell     | 3         | 13       | 3             | 0.1367188          |
+
+| 3 Player | Player HP | Enemy HP | Enemy Actions | 1 turn kill chance |
+|----------|-----------|----------|---------------|--------------------|
+| Easy     | 3         | 8        | 2             | 0.5                |
+| Medium   | 3         | 9        | 2             | 0.3125             |
+| Hard     | 2         | 10       | 2             | 0.15625            |
+| Hell     | 3         | 10       | 3             | 0.15625            |
+
+| 2 Player | Player HP | Enemy HP | Enemy Actions | 1 turn kill chance |
+|----------|-----------|----------|---------------|--------------------|
+| Easy     | 3         | 5        | 2             | 0.625              |
+| Medium   | 3         | 6        | 2             | 0.375              |
+| Hard     | 2         | 7        | 2             | 0.1875             |
+| Hell     | 3         | 7        | 3             | 0.1875             |
