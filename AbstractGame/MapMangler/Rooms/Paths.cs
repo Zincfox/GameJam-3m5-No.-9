@@ -8,6 +8,8 @@ namespace MapMangler.Rooms
     {
         int Cost { get => Elements.Count - 1; }
         public IList<T> Elements { get; }
+
+        public void LimitTo(int count);
     }
     public class RoomPath : IPath<Room>
     {
@@ -22,7 +24,12 @@ namespace MapMangler.Rooms
         {
             get => rooms.Count > 0 ? rooms[rooms.Count - 1] : null;
         }
-
+        public void LimitTo(int count)
+        {
+            if (count < 0) throw new ArgumentOutOfRangeException(nameof(count));
+            while (Elements.Count > count)
+                Elements.RemoveAt(count);
+        }
     }
 
     public class RoomSegmentPath : IPath<RoomSegment>
@@ -31,7 +38,13 @@ namespace MapMangler.Rooms
         public IList<RoomSegment> Elements => roomSegments;
         public RoomSegment? StartSegment => roomSegments.Count > 0 ? roomSegments[0] : null;
         public Room? StartRoom => StartSegment?.parentRoom;
-        public RoomSegment? EndSegment => roomSegments.Count > 0 ? roomSegments[roomSegments.Count -1] : null;
+        public RoomSegment? EndSegment => roomSegments.Count > 0 ? roomSegments[roomSegments.Count - 1] : null;
         public Room? EndRoom => EndSegment?.parentRoom;
+        public void LimitTo(int count)
+        {
+            if (count < 0) throw new ArgumentOutOfRangeException(nameof(count));
+            while (Elements.Count > count)
+                Elements.RemoveAt(count);
+        }
     }
 }

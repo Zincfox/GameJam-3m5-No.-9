@@ -13,11 +13,63 @@ namespace MapMangler.Difficulty
         public readonly GameState gameState;
         public readonly NPC npc;
 
+        private readonly List<(int health, RoomSegment location)> assumedHealthLocations = new List<(int, RoomSegment)>();
+
         public NPC_AI(GameState gameState, NPC npc)
         {
             this.gameState = gameState;
             this.npc = npc;
+            this.gameState.enemyVisionTracker.EntityVisionChangedEvent += EnemyVisionTracker_EntityVisionChangedEvent;
+            foreach(var room in this.gameState.enemyVisionTracker.GetEntityVisibleRooms(npc))
+            {
+                GainedVision(room);
+            }
         }
+
+        private void EnemyVisionTracker_EntityVisionChangedEvent(object sender, Rooms.Visibility.VisionTracker.EntityVisionTracker.EntityVisionEventArgs e)
+        {
+            if (e.entity != npc) return;
+            foreach (var lostVision in e.LostVision)
+            {
+                LostVision(lostVision);
+            }
+            foreach (var gainedVision in e.GainedVision)
+            {
+                GainedVision(gainedVision);
+            }
+        }
+
+        private void GainedVision(Room room)
+        {
+            foreach (var segment in room.Segments)
+            {
+                segment.EntitiesChangeEvent += Segment_EntitiesChangeEvent;
+                assumedHealthLocations.RemoveAll(assumedInfo => assumedInfo.location == segment);
+            }
+        }
+
+        private void LostVision(Room room)
+        {
+            foreach (var segment in room.Segments)
+            {
+                segment.EntitiesChangeEvent -= Segment_EntitiesChangeEvent;
+                foreach (var entity in segment.Entities)
+                {
+                    assumedHealthLocations.Add((entity.Health, segment));
+                }
+            }
+        }
+
+        private void Segment_EntitiesChangeEvent(object sender, RoomSegment.RoomSegmentContentChangeEventArgs e)
+        {
+            if (!(e.entity is Player)) return;
+            var toSegment = e.toRoomSegment;
+            if (e.IsLeave() && toSegment != null && !gameState.enemyVisionTracker.IsVisible(toSegment, npc))
+            {
+                assumedHealthLocations.Add((e.entity.Health, toSegment));
+            }
+        }
+
 
         public void StartTurn()
         {
@@ -90,13 +142,14 @@ namespace MapMangler.Difficulty
 
         public GameAction? ObtainNextAction()
         {
-            if (npc.Actions <= 0) return null;
+            if (npc.Actions <= 0) return EndTurn();
             var location = npc.Location;
-            if (location == null) return null;
+            if (location == null) return EndTurn();
             IList<Player> playersInAttackRange = (npc.stats.Ranged ? location.parentRoom.GetRoomEntities() : location.Entities).OfType<Player>().ToList();
             var target = ChooseMinBy(playersInAttackRange, p => p.Health);
             if (target != null)
             {
+                assumedHealthLocations.Clear();
                 return new AttackAction(npc, target, npc.stats.Damage);
             }
             ISet<Room> vision = gameState.enemyVisionTracker.GetEntityVisibleRooms(npc);
@@ -106,10 +159,31 @@ namespace MapMangler.Difficulty
             });
 
             var pathToLowestPlayer = ChooseMinBy(shortestPathsToPlayers, p => p.EndSegment!.Entities.Min(e => e.Health));
-            if(pathToLowestPlayer != null)
+            if (pathToLowestPlayer != null)
             {
+                assumedHealthLocations.Clear();
+                pathToLowestPlayer.LimitTo(1);
                 return new MoveAction(npc, pathToLowestPlayer);
             }
+            IList<RoomSegmentPath> shortestPathsToAssumedPlayers = Navigators.DefaultSegmentNavigator.FindShortestPaths(location, s =>
+            {
+                return assumedHealthLocations.Any((assumedInfo) => assumedInfo.location == s);
+            });
+
+            var pathToLowestAssumedPlayer = ChooseMinBy(shortestPathsToAssumedPlayers,
+                p => assumedHealthLocations
+                .Where(assumedInfo => assumedInfo.location == p.EndSegment)
+                .Min(assumedInfo => assumedInfo.health));
+            if (pathToLowestAssumedPlayer != null)
+            {
+                pathToLowestAssumedPlayer.LimitTo(1);
+                return new MoveAction(npc, pathToLowestAssumedPlayer);
+            }
+            return EndTurn();
+        }
+
+        private GameAction? EndTurn()
+        {
             return null;
         }
 
@@ -122,7 +196,7 @@ namespace MapMangler.Difficulty
             foreach (T element in list.Skip(1))
             {
                 C newValue = minBy(element);
-                if(newValue.CompareTo(minValue)<0)
+                if (newValue.CompareTo(minValue) < 0)
                 {
                     minValue = newValue;
                     minElement = element;

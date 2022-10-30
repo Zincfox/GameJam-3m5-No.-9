@@ -60,8 +60,8 @@ namespace MapMangler.Entities
                 if (oldLocation == value)
                     return;
                 location = value;
-                oldLocation?.RemoveEntity(this);
-                value?.AddEntity(this);
+                oldLocation?.RemoveEntity(this, value);
+                value?.AddEntity(this, oldLocation);
                 LocationChangeEvent?.Invoke(this, new EntityValueChangeEventArgs<RoomSegment?>(this, oldLocation, value));
             }
         }
