@@ -153,7 +153,7 @@ public class GameMaster : MonoBehaviour
         }
 
         ActivePlayer = players[index];
-        ActivePlayer.Entity.Actions = 2; // TODO
+        ActivePlayer.Entity.Actions = 3; // TODO
     }
 
     private void LevelClickHandler_AreaClicked()
@@ -215,7 +215,10 @@ public class GameMaster : MonoBehaviour
                 var end = toSegment.GetNextFreeSpace();
                 end.Owner = player;
 
+                Debug.Log(fromSegment.name + " " + toSegment.name);
+
                 yield return MoveEntity(player, start.transform.position, end.transform.position);
+                yield return new WaitForSeconds(0.5f);
             }
         }
 
