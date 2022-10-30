@@ -6,8 +6,18 @@ using System.Linq;
 
 namespace MapMangler.Rooms.Visibility
 {
-    public class VisionTracker
+    public abstract class VisionTracker
     {
+
+        public virtual bool IsVisible(Room room)
+        {
+            return visibleRooms.Contains(room);
+        }
+
+        public virtual bool IsVisible(RoomSegment segment)
+        {
+            return IsVisible(segment.parentRoom);
+        }
 
         public event EventHandler<VisionEventArgs>? GlobalVisionChangedEvent;
         public IReadOnlyList<Room> VisibleRooms => visibleRooms;
@@ -27,7 +37,15 @@ namespace MapMangler.Rooms.Visibility
 
         public class UnveiledVisionTracker : VisionTracker
         {
+            public override bool IsVisible(Room room)
+            {
+                return true;
+            }
 
+            public override bool IsVisible(RoomSegment segment)
+            {
+                return true;
+            }
 
             public UnveiledVisionTracker(RoomMap map) : this(map.Rooms)
             {
@@ -42,8 +60,29 @@ namespace MapMangler.Rooms.Visibility
 
         public class EntityVisionTracker : VisionTracker
         {
+            public readonly bool seeIntoAdjacientRooms;
+
+            public EntityVisionTracker() : this(seeIntoAdjacientRooms: false)
+            {
+
+            }
+
+            public EntityVisionTracker(bool seeIntoAdjacientRooms = false)
+            {
+                this.seeIntoAdjacientRooms = seeIntoAdjacientRooms;
+            }
 
             protected readonly Dictionary<Entity, ISet<Room>> visibleEntityRooms = new Dictionary<Entity, ISet<Room>>();
+
+            public bool IsVisible(Room room, Entity to)
+            {
+                return visibleEntityRooms.TryGetValue(to, out ISet<Room> rooms) && rooms.Contains(room);
+            }
+
+            public bool IsVisible(RoomSegment segment, Entity to)
+            {
+                return IsVisible(segment.parentRoom, to);
+            }
 
             public ISet<Room> GetEntityVisibleRooms(Entity entity)
             {
@@ -66,7 +105,6 @@ namespace MapMangler.Rooms.Visibility
             {
                 ent.LocationChangeEvent -= Ent_LocationChangeEvent;
                 UpdateEntityLocation(ent, ent.Location, null);
-
             }
 
             public event EventHandler<EntityVisionEventArgs>? EntityVisionChangedEvent;
@@ -85,10 +123,11 @@ namespace MapMangler.Rooms.Visibility
                 {
                     location.parentRoom
                 };
-                foreach (var segment in location.NeighbouringSegments)
-                {
-                    visible.Add(segment.parentRoom);
-                }
+                if (seeIntoAdjacientRooms)
+                    foreach (var segment in location.NeighbouringSegments)
+                    {
+                        visible.Add(segment.parentRoom);
+                    }
                 return visible;
             }
 
@@ -122,7 +161,7 @@ namespace MapMangler.Rooms.Visibility
             }
             private ISet<Room> CalculateVisibleRoomUnion(Entity exceptEntity)
             {
-                return visibleEntityRooms.SelectMany(entry => entry.Key == exceptEntity ? Enumerable.Empty<Room>(): entry.Value).ToHashSet();
+                return visibleEntityRooms.SelectMany(entry => entry.Key == exceptEntity ? Enumerable.Empty<Room>() : entry.Value).ToHashSet();
             }
 
             public class EntityVisionEventArgs : VisionEventArgs
@@ -131,7 +170,7 @@ namespace MapMangler.Rooms.Visibility
                 public EntityVisionEventArgs(ISet<Room> gainedVision, ISet<Room> lostVision, Entity entity) : base(gainedVision, lostVision)
                 {
                     this.entity = entity;
-                }   
+                }
             }
         }
     }

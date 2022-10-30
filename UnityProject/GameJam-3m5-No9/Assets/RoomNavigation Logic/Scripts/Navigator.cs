@@ -17,6 +17,7 @@ public class Navigator : MonoBehaviour
         
     }
 
+    /// @obsolete
     public void MoveAvatarToTargetLocation(EntityBehaviour entity, MapMangler.Rooms.RoomSegment from, MapMangler.Rooms.RoomSegment to)
     {
         Debug.Log(from+ " [ "+to);

@@ -5,6 +5,9 @@ using UnityEngine;
 public class GameMaster : MonoBehaviour
 {
     [SerializeField]
+    private LevelClickHandler levelClickHandler;
+
+    [SerializeField]
     private PlayerBehaviour[] players;
 
     [SerializeField]
@@ -16,12 +19,30 @@ public class GameMaster : MonoBehaviour
     [SerializeField]
     private RoomSegment sampleTargetSegment;
 
+    [SerializeField]
+    private PlayerBtnHandler[] handler;
+
     private const float SecondsToMove = 2.0f;
 
     private List<EntityBehaviour> entities = new List<EntityBehaviour>();
 
+    private MapMangler.GameState gameState = new MapMangler.GameState(MapMangler.Difficulty.DifficultyParameters.fromLevel(MapMangler.Difficulty.DifficultyLevel.EASY, 4));
+
+    public PlayerBehaviour ActivePlayer { get; set; }
+
+    private void OnEnable()
+    {
+        levelClickHandler.AreaClicked += LevelClickHandler_AreaClicked;
+    }
+
+    private void OnDisable()
+    {
+        levelClickHandler.AreaClicked -= LevelClickHandler_AreaClicked;
+    }
+
     private void Start()
     {
+        //MapMangler.GameState.LOGGER = Debug.Log;
         foreach (var p in players)
         {
             p.Entity.Location = startRoomSegment.Segment;
@@ -37,8 +58,10 @@ public class GameMaster : MonoBehaviour
             e.Entity.LocationChangeEvent += Entity_LocationChangeEvent;
             entities.Add(e);
         }
+        gameState.RunSetup();
 
-        StartCoroutine(Test());
+        //StartCoroutine(Test());
+        SelectPlayer(0);
     }
 
     private void OnDestroy()
@@ -57,11 +80,11 @@ public class GameMaster : MonoBehaviour
 
     private void Entity_LocationChangeEvent(object sender, MapMangler.Entities.Entity.EntityValueChangeEventArgs<MapMangler.Rooms.RoomSegment> e)
     {
-        var entity = e.entity;
+        /*var entity = e.entity;
         var from = e.from;
         var to = e.to;
         var script = entities.Find(script => script.Entity.Equals(e.entity));
-        MoveAvatarToTargetLocation(script, from, to);
+        MoveAvatarToTargetLocation(script, from, to);*/
     }
 
     private IEnumerator Test()
@@ -74,18 +97,18 @@ public class GameMaster : MonoBehaviour
         players[2].Entity.Location = sampleTargetSegment.Segment;
         yield return null;
 
-        /*var entity = players[3].Entity;
-
+        var entity = (MapMangler.Entities.Player)players[3].Entity;
+        //entity.StartTurn(5);
+        //var action = entity.AttemptMoveTo(sampleTargetSegment.Segment);
+        //action.Perform();
         entity.Actions = 3;
-        //players[3].Entity.Location = sampleTargetSegment.Segment;
         var moveAction = entity.AttemptMoveTo(sampleTargetSegment.Segment);
-        Debug.Log(moveAction);
         var stepper = moveAction.GetStepper();
-        Debug.Log(stepper);
         Debug.Log(stepper.Invoke());
         Debug.Log(stepper.Invoke());
         Debug.Log(stepper.Invoke());
-        Debug.Log(stepper.Invoke());*/
+        Debug.Log(stepper.Invoke());
+        Debug.Log(stepper.Invoke());
     }
 
     public void MoveAvatarToTargetLocation(EntityBehaviour entity, MapMangler.Rooms.RoomSegment from, MapMangler.Rooms.RoomSegment to)
@@ -110,7 +133,7 @@ public class GameMaster : MonoBehaviour
         {
             entity.transform.position = pos;
         }
-        Debug.Log("MoveEntity");
+        Debug.Log("MoveEntity " + startPos +" "+targetPos);
         var time = 0.0f;
         Vector3 pos;
         while (time < SecondsToMove)
@@ -122,5 +145,85 @@ public class GameMaster : MonoBehaviour
         }
         pos = Vector3.Slerp(startPos, targetPos, time / SecondsToMove);
         SetEntityPosition(entity, pos);
+    }
+
+    public void SelectPlayer(int index)
+    {
+        if (index < 0 || index >= players.Length)
+        {
+            ActivePlayer = null;
+            return;
+        }
+
+        ActivePlayer = players[index];
+        ActivePlayer.Entity.Actions = 3; // TODO
+    }
+
+    private void LevelClickHandler_AreaClicked()
+    {
+        var area = levelClickHandler.LastClicked;
+        var segment = area.parent.GetComponent<RoomSegment>();
+
+        if(ActivePlayer == null)
+        {
+            return;
+        }
+
+        StartCoroutine(MovePlayerToSelectedTarget(segment));
+    }
+
+    private IEnumerator MovePlayerToSelectedTarget(RoomSegment clickedSegment)
+    {
+        var player = ActivePlayer;
+        var steps = player.Entity.Actions;
+        Debug.Log(steps);
+
+        var entity = ActivePlayer.Entity;
+        var segment = clickedSegment.Segment;
+        var moveAction = entity.AttemptMoveTo(segment);
+        if (moveAction == null)
+        {
+            yield break;
+        }
+
+        var stepper = moveAction.GetStepper();
+        if (stepper == null)
+        {
+            yield break;
+        }
+
+        var remainingSteps = Mathf.Max(steps - player.Entity.Actions, 0);
+        Debug.Log(remainingSteps);
+        var segmentList = moveAction.path.Elements;
+        var pathCount = segmentList.Count -1;
+
+        var limit = steps - remainingSteps;
+        for (var index = 0; index < limit; ++index)
+        {
+            if (stepper.Invoke() == false)
+            {
+                yield break;
+            }
+            Debug.Log(index+" "+ pathCount);
+
+            var from = segmentList[index];
+            var to = segmentList[index + 1];
+
+            if (RoomSegment.Lookup.TryGetValue(from, out var fromSegment)
+                && RoomSegment.Lookup.TryGetValue(to, out var toSegment))
+            {
+                var start = fromSegment.FindOccupiedSpace(player);
+                if (start) start.Owner = null;
+
+                var end = toSegment.GetNextFreeSpace();
+                end.Owner = player;
+
+                Debug.Log(fromSegment.name + " " + toSegment.name);
+
+                yield return MoveEntity(player, start.transform.position, end.transform.position);
+                yield return new WaitForSeconds(0.5f);
+            }
+        }
+
     }
 }
