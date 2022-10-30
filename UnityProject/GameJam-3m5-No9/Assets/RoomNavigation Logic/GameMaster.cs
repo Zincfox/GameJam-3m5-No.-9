@@ -20,8 +20,11 @@ public class GameMaster : MonoBehaviour
 
     private List<EntityBehaviour> entities = new List<EntityBehaviour>();
 
+    private MapMangler.GameState gameState = new MapMangler.GameState(MapMangler.Difficulty.DifficultyParameters.fromLevel(MapMangler.Difficulty.DifficultyLevel.EASY, 4));
+
     private void Start()
     {
+        //MapMangler.GameState.LOGGER = Debug.Log;
         foreach (var p in players)
         {
             p.Entity.Location = startRoomSegment.Segment;
@@ -37,7 +40,7 @@ public class GameMaster : MonoBehaviour
             e.Entity.LocationChangeEvent += Entity_LocationChangeEvent;
             entities.Add(e);
         }
-
+        gameState.RunSetup();
         StartCoroutine(Test());
     }
 
@@ -73,7 +76,11 @@ public class GameMaster : MonoBehaviour
         yield return null;
         players[2].Entity.Location = sampleTargetSegment.Segment;
         yield return null;
-        players[3].Entity.Location = sampleTargetSegment.Segment;
+        var entity = (MapMangler.Entities.Player)players[3].Entity;
+        entity.StartTurn(5);
+        var action = entity.AttemptMoveTo(sampleTargetSegment.Segment);
+        action.Perform();
+        //players[3].Entity.Location = sampleTargetSegment.Segment;
     }
 
     public void MoveAvatarToTargetLocation(EntityBehaviour entity, MapMangler.Rooms.RoomSegment from, MapMangler.Rooms.RoomSegment to)

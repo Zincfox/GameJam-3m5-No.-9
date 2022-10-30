@@ -16,7 +16,7 @@ public class Room : MonoBehaviour
         //ConnectRooms();
     }
 
-    private void InitRoomSegments ()
+    /*private void InitRoomSegments ()
     {
         var room = RoomArea;
         foreach (var segment in roomSegements)
@@ -35,5 +35,5 @@ public class Room : MonoBehaviour
             MapMangler.Rooms.Room.ConnectRooms(room, neigbor.RoomArea);
         }
         Debug.Log(room.NeighbouringRooms.Count);
-    }
+    }*/
 }
