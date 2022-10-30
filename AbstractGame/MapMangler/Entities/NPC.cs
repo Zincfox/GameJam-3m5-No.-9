@@ -8,7 +8,9 @@ namespace MapMangler.Entities
     {
         public NPC(int entityID) : base(entityID)
         {
-
+            stats.MinRollActions = 0;
+            stats.MaxRollActions = 0;
+            stats.BonusActions = 0;
         }
     }
 }

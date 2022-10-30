@@ -10,9 +10,7 @@ namespace MapMangler.Rooms
     {
         public int RoomID { get; set; }
 
-        public IReadOnlyList<Room> NeighbouringRooms { get => neighbours; }
-
-        private readonly List<Room> neighbours = new List<Room>();
+        public IReadOnlyList<Room> NeighbouringRooms { get => segments.Select(s => s.parentRoom).Distinct().Except(new Room[] { this }).ToList(); }
 
         private readonly List<RoomSegment> segments = new List<RoomSegment>();
 
@@ -30,13 +28,9 @@ namespace MapMangler.Rooms
             return segment;
         }
 
-        public static void ConnectRooms(Room first, Room second)
+        public override string ToString()
         {
-            if (!first.neighbours.Contains(second))
-                first.neighbours.Add(second);
-            if (!second.neighbours.Contains(first))
-                second.neighbours.Add(first);
+            return $"Room({RoomID}, segments:[{string.Join(',', segments.Select(s=>s.id))}])";
         }
-
     }
 }
