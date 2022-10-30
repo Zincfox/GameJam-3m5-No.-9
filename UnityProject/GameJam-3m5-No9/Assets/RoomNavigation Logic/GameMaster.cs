@@ -183,8 +183,11 @@ public class GameMaster : MonoBehaviour
         }
     }
 
+    public AudioSource AudioSteps;
     private IEnumerator MoveEntity(EntityBehaviour entity, Vector3 startPos, Vector3 targetPos)
     {
+        AudioSteps.Play();
+
         void SetEntityPosition(EntityBehaviour entity, Vector3 pos)
         {
             entity.transform.position = pos;
