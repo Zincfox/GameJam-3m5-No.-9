@@ -74,7 +74,7 @@ public class GameMaster : MonoBehaviour
         players[2].Entity.Location = sampleTargetSegment.Segment;
         yield return null;
 
-        var entity = players[3].Entity;
+        /*var entity = players[3].Entity;
 
         entity.Actions = 3;
         //players[3].Entity.Location = sampleTargetSegment.Segment;
@@ -85,7 +85,7 @@ public class GameMaster : MonoBehaviour
         Debug.Log(stepper.Invoke());
         Debug.Log(stepper.Invoke());
         Debug.Log(stepper.Invoke());
-        Debug.Log(stepper.Invoke());
+        Debug.Log(stepper.Invoke());*/
     }
 
     public void MoveAvatarToTargetLocation(EntityBehaviour entity, MapMangler.Rooms.RoomSegment from, MapMangler.Rooms.RoomSegment to)
