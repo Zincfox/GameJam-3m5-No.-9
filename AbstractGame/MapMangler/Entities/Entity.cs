@@ -39,7 +39,7 @@ namespace MapMangler.Entities
             get => actions;
             set
             {
-                int oldActions = health;
+                int oldActions = actions;
                 if (oldActions == value)
                     return;
                 actions = value;
