@@ -41,6 +41,8 @@ public class GameMaster : MonoBehaviour
 
     public MapMangler.GameState GameState { get; private set; }
 
+    private int activePlayerIndex;
+
     private void Awake()
     {
         GameState = new MapMangler.GameState(MapMangler.Difficulty.DifficultyParameters.fromLevel(difficultyLevel, 4));
@@ -124,31 +126,8 @@ public class GameMaster : MonoBehaviour
         MoveAvatarToTargetLocation(script, from, to);*/
     }
 
-    public event System.EventHandler? GameStateReadyEvent;
+    public event EventHandler? GameStateReadyEvent;
 
-    private IEnumerator Test()
-    {
-        yield return null;
-        players[0].Entity.Location = sampleTargetSegment.Segment;
-        yield return null;
-        players[1].Entity.Location = sampleTargetSegment.Segment;
-        yield return null;
-        players[2].Entity.Location = sampleTargetSegment.Segment;
-        yield return null;
-
-        var entity = (MapMangler.Entities.Player)players[3].Entity;
-        //entity.StartTurn(5);
-        //var action = entity.AttemptMoveTo(sampleTargetSegment.Segment);
-        //action.Perform();
-        entity.Actions = 3;
-        var moveAction = entity.AttemptMoveTo(sampleTargetSegment.Segment);
-        var stepper = moveAction.GetStepper();
-        Debug.Log(stepper.Invoke());
-        Debug.Log(stepper.Invoke());
-        Debug.Log(stepper.Invoke());
-        Debug.Log(stepper.Invoke());
-        Debug.Log(stepper.Invoke());
-    }
 
     public IEnumerator ProcessNPCTurns()
     {
@@ -208,6 +187,7 @@ public class GameMaster : MonoBehaviour
             return;
         }
 
+        activePlayerIndex = index;
         ActivePlayer = players[index];
         //ActivePlayer.Entity.Actions = 3; // TODO
     }
@@ -245,16 +225,17 @@ public class GameMaster : MonoBehaviour
             yield break;
         }
 
-
         var remainingSteps = Mathf.Max(steps - player.Entity.Actions, 0);
-        Debug.Log(remainingSteps);
         var segmentList = moveAction.path.Elements;
         var pathCount = segmentList.Count -1;
 
         var limit = steps - remainingSteps;
         for (var index = 0; index < limit; ++index)
         {
-            if (stepper.Invoke() == false)
+            var result = stepper.Invoke();
+            playerStats[activePlayerIndex].remainingActionsLabel.text = entity.Actions.ToString();
+
+            if (result == false)
             {
                 yield break;
             }
@@ -276,17 +257,7 @@ public class GameMaster : MonoBehaviour
 
                 yield return MoveEntity(player, start.transform.position, end.transform.position);
                 yield return new WaitForSeconds(0.5f);
-
-                Debug.Log(player.Entity.Actions);
             }
-        }
-
-        Debug.Log(player.Entity.Actions +" --- "+ remainingSteps + " "+ (player.Entity.Actions == 1 && remainingSteps == 0));
-        // Fix issues with non decreasing counter
-        if (player.Entity.Actions == 1 && remainingSteps == 0)
-        {
-            //player.Entity.Actions = 0;
-            (player.Entity as MapMangler.Entities.Player).EndTurn();
         }
     }
 
