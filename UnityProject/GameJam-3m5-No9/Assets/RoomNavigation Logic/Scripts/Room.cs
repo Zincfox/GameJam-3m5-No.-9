@@ -12,8 +12,8 @@ public class Room : MonoBehaviour
 
     void Start()
     {
-        InitRoomSegments();
-        ConnectRooms();
+        //InitRoomSegments();
+        //ConnectRooms();
     }
 
     private void InitRoomSegments ()

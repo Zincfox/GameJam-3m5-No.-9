@@ -9,8 +9,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3637769146669890583}
-  - component: {fileID: -2660698496856516455}
   - component: {fileID: 505028409068783999}
+  - component: {fileID: 4440342424199096079}
   m_Layer: 0
   m_Name: Enemy
   m_TagString: Untagged
@@ -34,24 +34,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &-2660698496856516455
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2823967291649570622}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7e913104a252d4353a57758ce0f28d9f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  hotspotPrefab: {fileID: 3396288297631232627, guid: 0ff7ef0e75d094bfa8afe57e405c69e7, type: 3}
-  hotspot: {fileID: 0}
-  meshRenderer: {fileID: 2656929936948037165}
-  avatarIcons: {fileID: 11400000, guid: 8b3c00a39c46c48df902490f576139d5, type: 2}
-  icon: 9
-  hotspotConnection: {fileID: 0}
 --- !u!114 &505028409068783999
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -65,6 +47,24 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   other: {fileID: 0}
+--- !u!114 &4440342424199096079
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2823967291649570622}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bac3db058298a4864854c475afcdc5f3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hotspotPrefab: {fileID: 3396288297631232627, guid: 0ff7ef0e75d094bfa8afe57e405c69e7, type: 3}
+  hotspot: {fileID: 0}
+  meshRenderer: {fileID: 2656929936948037165}
+  avatarIcons: {fileID: 11400000, guid: 8b3c00a39c46c48df902490f576139d5, type: 2}
+  icon: 9
+  hotspotConnection: {fileID: 0}
 --- !u!1 &4615680057518407260
 GameObject:
   m_ObjectHideFlags: 0
@@ -114,7 +114,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4615680057518407260}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1

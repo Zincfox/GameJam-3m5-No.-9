@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 
 // combattants
 
@@ -23,6 +24,8 @@ public class EntityBehaviour : MonoBehaviour
     [SerializeField]
     private GameObjectConnection hotspotConnection;
 
+    public MapMangler.Entities.Entity Entity { get; protected set; }
+
     protected virtual void Awake()
     {
         if (!hotspotConnection) {
@@ -30,14 +33,11 @@ public class EntityBehaviour : MonoBehaviour
         }
     }
 
+
+
     protected virtual void Start()
     {
         HideHelperObject();
-    }
-
-    protected virtual void Reset()
-    {
-        //OnValidate();
     }
 
     protected virtual void Update() 
