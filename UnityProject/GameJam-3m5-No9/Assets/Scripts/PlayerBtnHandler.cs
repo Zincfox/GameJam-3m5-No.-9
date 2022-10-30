@@ -13,9 +13,5 @@ public class PlayerBtnHandler : MonoBehaviour
         {
             actionTextField.text = Random.Range(1, 5).ToString();
         }
-        else
-        {
-            Debug.Log("NOPE");
-        }
     }
 }
