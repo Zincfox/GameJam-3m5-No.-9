@@ -11,7 +11,7 @@ namespace MapMangler.Rooms
         public readonly static Navigator<Room, RoomPath> DefaultRoomNavigator = new Navigator<Room, RoomPath>(r => r.NeighbouringRooms);
     }
 
-    public class Navigator<T, P> where P : notnull, IPath<T>, new() where T:notnull
+    public class Navigator<T, P> where P : GamePath<T>, new() where T:notnull
     {
 
         public delegate IEnumerable<(int cost, T neighbour)> NeighbourCostFunction(T source);
@@ -27,6 +27,19 @@ namespace MapMangler.Rooms
                 n => (1, n)))
         {
 
+        }
+        public P? FindShortestPath(T source, T target)
+        {
+            return FindShortestPaths(source, target).FirstOrDefault();
+        }
+        public IList<P> FindShortestPaths(T source, T target)
+        {
+            return FindShortestPaths(source, e => e.Equals(target));
+        }
+
+        public P? FindShortestPath(T source, Predicate<T> predicate)
+        {
+            return FindShortestPaths(source, predicate).FirstOrDefault();
         }
 
         public IList<P> FindShortestPaths(T source, Predicate<T> predicate)
@@ -97,11 +110,6 @@ namespace MapMangler.Rooms
                 }
                 return paths;
             });
-        }
-
-        public IList<P> FindShortestPaths(T source, T target)
-        {
-            return FindShortestPaths(source, e => e.Equals(target));
         }
     }
 }

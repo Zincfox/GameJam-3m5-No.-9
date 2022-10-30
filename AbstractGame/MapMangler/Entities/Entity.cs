@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Text;
 using MapMangler.Rooms;
+using MapMangler.Actions;
+using System.Linq;
 
 namespace MapMangler.Entities
 {
@@ -60,10 +62,46 @@ namespace MapMangler.Entities
                 if (oldLocation == value)
                     return;
                 location = value;
-                oldLocation?.RemoveEntity(this);
-                value?.AddEntity(this);
+                oldLocation?.RemoveEntity(this, value);
+                value?.AddEntity(this, oldLocation);
                 LocationChangeEvent?.Invoke(this, new EntityValueChangeEventArgs<RoomSegment?>(this, oldLocation, value));
             }
+        }
+        public virtual MoveAction? AttemptMoveTo(RoomSegment targetSegment, bool allowPartialPaths = false)
+        {
+            var location = Location;
+            if (location == null) return null;
+            var path = Navigators.DefaultSegmentNavigator.FindShortestPath(location, targetSegment);
+            if (path == null) return null;
+            return AttemptMove(path, allowPartialPaths);
+        }
+
+        public virtual MoveAction? AttemptMove(RoomSegmentPath path, bool allowPartialPaths = false)
+        {
+            var cost = path.Cost;
+            if (cost <= Actions) return new MoveAction(this, path);
+            if (allowPartialPaths)
+            {
+                path.LimitTo(Actions);
+                return new MoveAction(this, path);
+            }
+            return null;
+        }
+        public AttackAction? AttemptAttack(Entity target)
+        {
+            var ownLocation = Location;
+            if (ownLocation == null) return null;
+            var targetLocation = target.Location;
+            if (!stats.Ranged)
+            {
+                if (targetLocation != ownLocation)
+                    return null;
+            }else
+            {
+                if (!ownLocation.parentRoom.Segments.Contains(targetLocation))
+                    return null;
+            }
+            return new AttackAction(this, target, stats.Damage);
         }
 
         public void ReceiveBlockableDamage(int damage)

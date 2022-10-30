@@ -20,8 +20,6 @@ namespace MapMangler.Rooms
                 first.neighbours.Add(second);
             if (!second.neighbours.Contains(first))
                 second.neighbours.Add(first);
-            if (first.parentRoom != second.parentRoom)
-                Room.ConnectRooms(first.parentRoom, second.parentRoom);
         }
 
 
@@ -36,17 +34,17 @@ namespace MapMangler.Rooms
 
         public IReadOnlyList<Entity> Entities { get => entities; }
 
-        internal void AddEntity(Entity entity)
+        internal void AddEntity(Entity entity, RoomSegment? previousLocation)
         {
             if (entities.Contains(entity)) return;
             entities.Add(entity);
-            EntitiesChangeEvent?.Invoke(this, new RoomSegmentContentChangeEventArgs(this, entity, false));
+            EntitiesChangeEvent?.Invoke(this, new RoomSegmentContentChangeEventArgs(this, entity, false, previousLocation));
         }
 
-        internal void RemoveEntity(Entity entity)
+        internal void RemoveEntity(Entity entity, RoomSegment? newLocation)
         {
             if (!entities.Remove(entity)) return;
-            EntitiesChangeEvent?.Invoke(this, new RoomSegmentContentChangeEventArgs(this, entity, true));
+            EntitiesChangeEvent?.Invoke(this, new RoomSegmentContentChangeEventArgs(this, entity, true, newLocation));
         }
 
         public event EventHandler<RoomSegmentContentChangeEventArgs>? EntitiesChangeEvent;
@@ -56,11 +54,23 @@ namespace MapMangler.Rooms
             public readonly RoomSegment roomSegment;
             public readonly Entity entity;
             private readonly bool isLeave;
-            public RoomSegmentContentChangeEventArgs(RoomSegment roomSegment, Entity entity, bool isLeave)
+            public readonly RoomSegment? fromRoomSegment;
+            public readonly RoomSegment? toRoomSegment;
+            public RoomSegmentContentChangeEventArgs(RoomSegment roomSegment, Entity entity, bool isLeave, RoomSegment? other=null)
             {
                 this.roomSegment = roomSegment;
                 this.entity = entity;
                 this.isLeave = isLeave;
+                if (isLeave)
+                {
+                    fromRoomSegment = roomSegment;
+                    toRoomSegment = other;
+                }
+                else
+                {
+                    fromRoomSegment = other;
+                    toRoomSegment = roomSegment;
+                }
             }
 
             public bool IsLeave() => isLeave;
