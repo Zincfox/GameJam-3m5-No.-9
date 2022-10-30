@@ -1,6 +1,16 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+
+[Serializable]
+public struct PlayerStats
+{
+    public Button rerollButton;
+    public TMPro.TMP_Text remainingActionsLabel;
+    public TMPro.TMP_Text remainingHealthLabel;
+}
 
 public class GameMaster : MonoBehaviour
 {
@@ -20,24 +30,48 @@ public class GameMaster : MonoBehaviour
     private RoomSegment sampleTargetSegment;
 
     [SerializeField]
-    private PlayerBtnHandler[] handler;
+    private PlayerStats[] playerStats;
+
+    [SerializeField]
+    private MapMangler.Difficulty.DifficultyLevel difficultyLevel;
 
     private const float SecondsToMove = 2.0f;
 
     private List<EntityBehaviour> entities = new List<EntityBehaviour>();
 
-    private MapMangler.GameState gameState = new MapMangler.GameState(MapMangler.Difficulty.DifficultyParameters.fromLevel(MapMangler.Difficulty.DifficultyLevel.EASY, 4));
+    public MapMangler.GameState GameState { get; private set; }
+
+    private int activePlayerIndex;
+
+    private void Awake()
+    {
+        GameState = new MapMangler.GameState(MapMangler.Difficulty.DifficultyParameters.fromLevel(difficultyLevel, 4));
+    }
 
     public PlayerBehaviour ActivePlayer { get; set; }
 
     private void OnEnable()
     {
         levelClickHandler.AreaClicked += LevelClickHandler_AreaClicked;
+
+        var counter = 0;
+        foreach(var player in playerStats)
+        {
+            int playerId = counter++;
+            player.rerollButton.onClick.AddListener(() =>
+            {
+                OnRerollButtonClick(playerId);
+            });
+        }
     }
 
     private void OnDisable()
     {
         levelClickHandler.AreaClicked -= LevelClickHandler_AreaClicked;
+        foreach (var player in playerStats)
+        {
+            player.rerollButton.onClick.RemoveAllListeners();
+        }
     }
 
     private void Start()
@@ -58,10 +92,10 @@ public class GameMaster : MonoBehaviour
             e.Entity.LocationChangeEvent += Entity_LocationChangeEvent;
             entities.Add(e);
         }
-        gameState.RunSetup();
+        GameState.RunSetup();
 
         //StartCoroutine(Test());
-        SelectPlayer(0);
+        //SelectPlayer(0);
     }
 
     private void OnDestroy()
@@ -78,6 +112,11 @@ public class GameMaster : MonoBehaviour
         }
     }
 
+    private void SetupGameState()
+    {
+        GameStateReadyEvent?.Invoke(this, System.EventArgs.Empty);
+    }
+
     private void Entity_LocationChangeEvent(object sender, MapMangler.Entities.Entity.EntityValueChangeEventArgs<MapMangler.Rooms.RoomSegment> e)
     {
         /*var entity = e.entity;
@@ -87,28 +126,21 @@ public class GameMaster : MonoBehaviour
         MoveAvatarToTargetLocation(script, from, to);*/
     }
 
-    private IEnumerator Test()
-    {
-        yield return null;
-        players[0].Entity.Location = sampleTargetSegment.Segment;
-        yield return null;
-        players[1].Entity.Location = sampleTargetSegment.Segment;
-        yield return null;
-        players[2].Entity.Location = sampleTargetSegment.Segment;
-        yield return null;
+    public event EventHandler? GameStateReadyEvent;
 
-        var entity = (MapMangler.Entities.Player)players[3].Entity;
-        //entity.StartTurn(5);
-        //var action = entity.AttemptMoveTo(sampleTargetSegment.Segment);
-        //action.Perform();
-        entity.Actions = 3;
-        var moveAction = entity.AttemptMoveTo(sampleTargetSegment.Segment);
-        var stepper = moveAction.GetStepper();
-        Debug.Log(stepper.Invoke());
-        Debug.Log(stepper.Invoke());
-        Debug.Log(stepper.Invoke());
-        Debug.Log(stepper.Invoke());
-        Debug.Log(stepper.Invoke());
+
+    public IEnumerator ProcessNPCTurns()
+    {
+        foreach(EnemyBehaviour enemy in entities)
+        {
+            var iterator = enemy.MakeNPCTurn();
+            bool again;
+            do
+            {
+                again = iterator.MoveNext();
+                yield return null;
+            } while (again);
+        }
     }
 
     public void MoveAvatarToTargetLocation(EntityBehaviour entity, MapMangler.Rooms.RoomSegment from, MapMangler.Rooms.RoomSegment to)
@@ -158,8 +190,9 @@ public class GameMaster : MonoBehaviour
             return;
         }
 
+        activePlayerIndex = index;
         ActivePlayer = players[index];
-        ActivePlayer.Entity.Actions = 3; // TODO
+        //ActivePlayer.Entity.Actions = 3; // TODO
     }
 
     private void LevelClickHandler_AreaClicked()
@@ -196,14 +229,16 @@ public class GameMaster : MonoBehaviour
         }
 
         var remainingSteps = Mathf.Max(steps - player.Entity.Actions, 0);
-        Debug.Log(remainingSteps);
         var segmentList = moveAction.path.Elements;
         var pathCount = segmentList.Count -1;
 
         var limit = steps - remainingSteps;
         for (var index = 0; index < limit; ++index)
         {
-            if (stepper.Invoke() == false)
+            var result = stepper.Invoke();
+            playerStats[activePlayerIndex].remainingActionsLabel.text = entity.Actions.ToString();
+
+            if (result == false)
             {
                 yield break;
             }
@@ -227,6 +262,28 @@ public class GameMaster : MonoBehaviour
                 yield return new WaitForSeconds(0.5f);
             }
         }
+    }
 
+    private void OnRerollButtonClick(int playerIndex)
+    {
+        SelectPlayer(playerIndex);
+        Debug.Log(
+            players[0].Entity.Actions + " " +
+            players[1].Entity.Actions + " " +
+            players[2].Entity.Actions + " " +
+            players[3].Entity.Actions);
+
+        if (
+             players[0].Entity.Actions > 0
+             || players[1].Entity.Actions > 0
+             || players[2].Entity.Actions > 0
+             || players[3].Entity.Actions > 0)
+        {
+            return;
+        }
+
+        var actionCount = UnityEngine.Random.Range(1, 5);
+        players[playerIndex].Entity.Actions = actionCount;
+        playerStats[playerIndex].remainingActionsLabel.text = actionCount.ToString();
     }
 }
