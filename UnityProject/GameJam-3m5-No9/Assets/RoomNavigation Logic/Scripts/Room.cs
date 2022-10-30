@@ -13,8 +13,12 @@ public class Room : MonoBehaviour
     private void Awake()
     {
         GameMaster gm = FindObjectOfType<GameMaster>();
+        Debug.Log("Awake Room", gm);
         if (gm == null) throw new System.Exception("Could not locate GameMaster in scene");
-        gm.GameStateReadyEvent += (gs, _) => ((MapMangler.GameState)gs).map.AddRoom(RoomArea);
+        gm.GameStateReadyEvent += (_, _) =>
+        {
+            gm.GameState.map.AddRoom(RoomArea);
+        };
     }
 
     void Start()
