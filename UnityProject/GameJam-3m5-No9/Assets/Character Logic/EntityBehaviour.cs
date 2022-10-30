@@ -66,4 +66,9 @@ public class EntityBehaviour : MonoBehaviour
     {
         if(meshRenderer) meshRenderer.enabled = false;
     }
+
+    private void OnValidate()
+    {
+        if (hotspot != null) hotspot.SetAvatarIcon(avatarIcons.SelectSprite(icon));
+    }
 }
