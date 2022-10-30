@@ -20,8 +20,6 @@ namespace MapMangler.Rooms
                 first.neighbours.Add(second);
             if (!second.neighbours.Contains(first))
                 second.neighbours.Add(first);
-            if (first.parentRoom != second.parentRoom)
-                Room.ConnectRooms(first.parentRoom, second.parentRoom);
         }
 
 
