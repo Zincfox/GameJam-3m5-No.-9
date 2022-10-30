@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -88,7 +89,7 @@ public class GameMaster : MonoBehaviour
         foreach (var p in players)
         {
             p.Entity.Location = startRoomSegment.Segment;
-            p.Entity.LocationChangeEvent += Entity_LocationChangeEvent;
+            //p.Entity.LocationChangeEvent += Entity_LocationChangeEvent;
             p.Entity.HealthChangeEvent += Player_HealthChangeEvent;
             p.Entity.ActionsChangeEvent += Player_ActionsChangeEvent;
             entities.Add(p);
@@ -99,7 +100,7 @@ public class GameMaster : MonoBehaviour
         foreach (var e in enemies)
         {
             e.Entity.Location = startRoomSegment.Segment;
-            e.Entity.LocationChangeEvent += Entity_LocationChangeEvent;
+            e.Entity.LocationChangeEvent += Enemy_LocationChangeEvent;
             entities.Add(e);
         }
         SetupGameState();
@@ -119,6 +120,18 @@ public class GameMaster : MonoBehaviour
         throw new Exception($"Could not find GameObject-Player for Logic-Player {player.entityID}");
     }
 
+    private int GetPlayerStatsIndex(MapMangler.Entities.Player player)
+    {
+        for (int i = 0; i < playerStats.Length; i++)
+        {
+            if (players[i].Entity == player)
+            {
+                return i;
+            }
+        }
+        throw new Exception($"Could not find GameObject-Player for Logic-Player {player.entityID}");
+    }
+
     private void Player_HealthChangeEvent(object sender, MapMangler.Entities.Entity.EntityValueChangeEventArgs<int> e)
     {
         GetPlayerStats((MapMangler.Entities.Player)e.entity).remainingHealthLabel.text = e.to.ToString();
@@ -127,20 +140,26 @@ public class GameMaster : MonoBehaviour
     private void Player_ActionsChangeEvent(object sender, MapMangler.Entities.Entity.EntityValueChangeEventArgs<int> e)
     {
         GetPlayerStats((MapMangler.Entities.Player)e.entity).remainingActionsLabel.text = e.to.ToString();
-        if (e.entity.Actions == 0) turnController.SetPlayerTurnToFinish(activePlayerIndex);
+
+        if (e.entity.Actions == 0)
+        {
+            var index = GetPlayerStatsIndex((MapMangler.Entities.Player)e.entity);
+            turnController.SetPlayerTurnToFinish(index);
+            playerStats[index].rerollButton.interactable = false;
+        }
     }
 
     private void OnDestroy()
     {
-        foreach(var p in players)
+        /*foreach(var p in players)
         {
             p.Entity.LocationChangeEvent -= Entity_LocationChangeEvent;
             Debug.Log(p.Entity.Location);
-        }
+        }*/
 
         foreach (var e in enemies)
         {
-            e.Entity.LocationChangeEvent -= Entity_LocationChangeEvent;
+            e.Entity.LocationChangeEvent -= Enemy_LocationChangeEvent;
         }
     }
 
@@ -150,13 +169,13 @@ public class GameMaster : MonoBehaviour
         GameState.RunSetup();
     }
 
-    private void Entity_LocationChangeEvent(object sender, MapMangler.Entities.Entity.EntityValueChangeEventArgs<MapMangler.Rooms.RoomSegment> e)
+    private void Enemy_LocationChangeEvent(object sender, MapMangler.Entities.Entity.EntityValueChangeEventArgs<MapMangler.Rooms.RoomSegment> e)
     {
-        /*var entity = e.entity;
+        var entity = e.entity;
         var from = e.from;
         var to = e.to;
         var script = entities.Find(script => script.Entity.Equals(e.entity));
-        MoveAvatarToTargetLocation(script, from, to);*/
+        MoveAvatarToTargetLocation(script, from, to);
     }
 
     public event EventHandler? GameStateReadyEvent;
@@ -178,7 +197,6 @@ public class GameMaster : MonoBehaviour
 
     public void MoveAvatarToTargetLocation(EntityBehaviour entity, MapMangler.Rooms.RoomSegment from, MapMangler.Rooms.RoomSegment to)
     {
-        Debug.Log(from + " [ " + to);
         if (RoomSegment.Lookup.TryGetValue(from, out var fromSegment)
             && RoomSegment.Lookup.TryGetValue(to, out var toSegment))
         {
@@ -198,7 +216,7 @@ public class GameMaster : MonoBehaviour
         {
             entity.transform.position = pos;
         }
-        Debug.Log("MoveEntity " + startPos +" "+targetPos);
+
         var time = 0.0f;
         Vector3 pos;
         while (time < SecondsToMove)
@@ -242,7 +260,6 @@ public class GameMaster : MonoBehaviour
     {
         var player = ActivePlayer;
         var steps = player.Entity.Actions;
-        Debug.Log(steps);
 
         var entity = ActivePlayer.Entity;
         var segment = clickedSegment.Segment;
@@ -271,7 +288,6 @@ public class GameMaster : MonoBehaviour
             {
                 yield break;
             }
-            Debug.Log(index+" "+ pathCount);
 
             var from = segmentList[index];
             var to = segmentList[index + 1];
@@ -284,8 +300,6 @@ public class GameMaster : MonoBehaviour
 
                 var end = toSegment.GetNextFreeSpace();
                 end.Owner = player;
-
-                Debug.Log(fromSegment.name + " " + toSegment.name);
 
                 yield return MoveEntity(player, start.transform.position, end.transform.position);
                 yield return new WaitForSeconds(0.5f);
@@ -318,11 +332,28 @@ public class GameMaster : MonoBehaviour
 
     private void TurnController_AllPlayerTurnsFinished()
     {
-        
+        //ProcessNPCTurns();
+        StartCoroutine(EnemyTurn());
+    }
+
+    private IEnumerator EnemyTurn()
+    {
+        var enemies = entities.Where(it => it is EnemyBehaviour);
+        foreach (EnemyBehaviour enemy in enemies)
+        {
+            var iterator = enemy.MakeNPCTurn();
+            bool again;
+            do
+            {
+                again = iterator.MoveNext();
+                yield return null;
+            } while (again);
+        }
     }
 
     private void TurnController_EnemyTurnFinshed()
     {
+        Debug.Log("TurnController_EnemyTurnFinshed");
         playerStats[0].rerollButton.interactable = true;
         playerStats[1].rerollButton.interactable = true;
         playerStats[2].rerollButton.interactable = true;

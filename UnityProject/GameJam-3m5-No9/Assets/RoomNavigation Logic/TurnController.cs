@@ -5,10 +5,10 @@ public class TurnController
     public event Action AllPlayerTurnsFinished;
     public event Action EnemyTurnFinshed;
 
-    public bool player1TurnEnd;
-    public bool player2TurnEnd;
-    public bool player3TurnEnd;
-    public bool player4TurnEnd;
+    public bool player1TurnEnd = true;
+    public bool player2TurnEnd = true;
+    public bool player3TurnEnd = true;
+    public bool player4TurnEnd = false;
 
     public void SetPlayerTurnToFinish(int playerId)
     {
