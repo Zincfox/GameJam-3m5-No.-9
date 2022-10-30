@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 3420768355690049024}
   - component: {fileID: 3747459940087540140}
   - component: {fileID: 1001851707601881091}
+  - component: {fileID: -916009457069746171}
   m_Layer: 5
   m_Name: Hotspot Avatar
   m_TagString: Untagged
@@ -61,6 +62,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   text: {fileID: 2898609285137567778}
+  avatarIcon: {fileID: 8312967963267866653}
+--- !u!114 &-916009457069746171
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3396288297631232627}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 061fb1b0a954a4df8bdbd66fdf459a9e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  other: {fileID: 0}
 --- !u!1 &6103975497188495276
 GameObject:
   m_ObjectHideFlags: 0
@@ -154,8 +169,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 72
-  m_fontSizeBase: 72
+  m_fontSize: 56
+  m_fontSizeBase: 56
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18

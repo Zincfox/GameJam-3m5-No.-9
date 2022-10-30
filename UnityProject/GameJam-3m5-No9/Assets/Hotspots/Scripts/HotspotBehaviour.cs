@@ -1,28 +1,18 @@
 using UnityEngine;
-using UnityEngine.Assertions;
+using UnityEngine.UI;
 using TMPro;
 
+[ExecuteAlways]
 public class HotspotBehaviour : MonoBehaviour
 {
     [SerializeField]
     private TMP_Text text;
 
-#if UNITY_EDITOR
-    [Header("Debug Only")]
-
     [SerializeField]
-    private HotspotWorldPositionAnchor owner;
-#endif
+    private Image avatarIcon;
 
-    private void Reset()
+    public void SetAvatarIcon(Sprite sprite)
     {
-        text = GetComponentInChildren<TMP_Text>();
+        if (sprite != null) avatarIcon.sprite = sprite;
     }
-
-#if UNITY_EDITOR
-    public void SetOwner(HotspotWorldPositionAnchor anchor)
-    {
-        owner = anchor;
-    }
-#endif
 }

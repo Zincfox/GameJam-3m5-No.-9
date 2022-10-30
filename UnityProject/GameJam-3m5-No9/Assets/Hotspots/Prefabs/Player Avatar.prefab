@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 3420768355690049024}
   - component: {fileID: 3747459940087540140}
   - component: {fileID: 1001851707601881091}
+  - component: {fileID: -2910372100213831427}
   m_Layer: 5
   m_Name: Player Avatar
   m_TagString: Untagged
@@ -59,8 +60,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 06fcfcd1e8aa64c75a017bc40a4b7023, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  hotspotCollection: {fileID: 11400000, guid: 98cfc9d1431ab436fa2ca701f09147b8, type: 2}
   text: {fileID: 0}
-  owner: {fileID: 0}
+  avatarIcon: {fileID: 8312967963267866653}
+--- !u!114 &-2910372100213831427
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3396288297631232627}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 061fb1b0a954a4df8bdbd66fdf459a9e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  other: {fileID: 0}
 --- !u!1 &7338565700587267664
 GameObject:
   m_ObjectHideFlags: 0
@@ -120,7 +135,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.010130405, g: 0, b: 1, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1

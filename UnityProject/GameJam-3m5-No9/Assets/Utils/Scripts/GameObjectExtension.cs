@@ -1,18 +1,25 @@
-﻿using UnityEngine;
-using System.Collections;
+﻿using System;
+using UnityEngine;
+using UnityEngine.Assertions;
 
 public static class GameObjectExtension
 {
     public static GameObject FindChildByName(this GameObject parent, string childName)
     {
-        foreach (Transform child in parent.transform)
+        foreach (Transform childTransform in parent.transform)
         {
-            if (child.name == childName)
+            if (childTransform.name == childName)
             {
-                return child.gameObject;
+                return childTransform.gameObject;
             }
         }
+        throw new Exception($"Could not find child by name: {childName}");
+    }
 
-        return null;
+    public static void BindComponent<TComponent>(this GameObject go, out TComponent component)
+        where TComponent : Component
+    {
+        component = go.GetComponentInChildren(typeof(TComponent)) as TComponent;
+        Assert.IsNotNull(component, $"Could not find component of type ${typeof(TComponent)} on {go.name}");
     }
 }
