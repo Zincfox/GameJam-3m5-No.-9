@@ -19,6 +19,9 @@ public class GameMaster : MonoBehaviour
     [SerializeField]
     private RoomSegment sampleTargetSegment;
 
+    [SerializeField]
+    private PlayerBtnHandler[] handler;
+
     private const float SecondsToMove = 2.0f;
 
     private List<EntityBehaviour> entities = new List<EntityBehaviour>();
