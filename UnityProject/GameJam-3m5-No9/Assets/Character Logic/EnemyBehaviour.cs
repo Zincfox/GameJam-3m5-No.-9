@@ -8,19 +8,12 @@
 
         var id = gameObject.GetInstanceID();
         Entity = new MapMangler.Entities.NPC(id);
-    }
-
-    protected override void Start()
-    {
-        base.Start();
-
         GameMaster gm = FindObjectOfType<GameMaster>();
+        UnityEngine.Debug.Log("Awake NPC", gm);
         if (gm == null) throw new System.Exception("Could not locate GameMaster in scene");
-        gm.GameStateReadyEvent += (gs, _) =>
+        gm.GameStateReadyEvent += (_, _) =>
         {
-            var gameState = (MapMangler.GameState)gs;
-
-            ai = new MapMangler.Difficulty.NPC_AI(gameState, (MapMangler.Entities.NPC)Entity);
+            ai = new MapMangler.Difficulty.NPC_AI(gm.GameState, (MapMangler.Entities.NPC)Entity);
         };
     }
 
