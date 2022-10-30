@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using Random=UnityEngine.Random;
 
 [Serializable]
 public struct PlayerStats
@@ -74,6 +75,15 @@ public class GameMaster : MonoBehaviour
         }
     }
 
+    public AudioSource AudioLaughing;
+    public AudioClip[] AudioArrayLaughing;
+    private void PlayAudioLaughing()
+    {
+        var randomClipIndex = Random.Range(0, AudioArrayLaughing.Length);
+
+        AudioLaughing.clip = AudioArrayLaughing[randomClipIndex];
+        AudioLaughing.Play();
+    }
     private void Start()
     {
         //MapMangler.GameState.LOGGER = Debug.Log;
@@ -97,6 +107,7 @@ public class GameMaster : MonoBehaviour
         SetupGameState();
         //StartCoroutine(Test());
         //SelectPlayer(0);
+
     }
 
     private ref PlayerStats GetPlayerStats(MapMangler.Entities.Player player)
@@ -121,6 +132,20 @@ public class GameMaster : MonoBehaviour
         GetPlayerStats((MapMangler.Entities.Player)e.entity).remainingActionsLabel.text = e.to.ToString();
     }
 
+    public float period = 0.0f;
+    public float nextLaughingInterval = 12f;
+    void Update()
+    {
+        if (period > nextLaughingInterval)
+        {
+            nextLaughingInterval = 4f + Random.Range(0f, 22f);
+            period = 0;
+            
+            PlayAudioLaughing();
+        }
+        period += UnityEngine.Time.deltaTime;
+    }
+    
     private void OnDestroy()
     {
         foreach(var p in players)
