@@ -43,6 +43,8 @@ public class GameMaster : MonoBehaviour
 
     private int activePlayerIndex;
 
+    private TurnController turnController = new TurnController();
+
     private void Awake()
     {
         GameState = new MapMangler.GameState(MapMangler.Difficulty.DifficultyParameters.fromLevel(difficultyLevel, 4));
@@ -63,6 +65,9 @@ public class GameMaster : MonoBehaviour
                 OnRerollButtonClick(playerId);
             });
         }
+
+        turnController.AllPlayerTurnsFinished += TurnController_AllPlayerTurnsFinished;
+        turnController.EnemyTurnFinshed += TurnController_EnemyTurnFinshed;
     }
 
     private void OnDisable()
@@ -72,6 +77,9 @@ public class GameMaster : MonoBehaviour
         {
             player.rerollButton.onClick.RemoveAllListeners();
         }
+
+        turnController.AllPlayerTurnsFinished -= TurnController_AllPlayerTurnsFinished;
+        turnController.EnemyTurnFinshed -= TurnController_EnemyTurnFinshed;
     }
 
     private void Start()
@@ -84,6 +92,7 @@ public class GameMaster : MonoBehaviour
             entities.Add(p);
             var space = startRoomSegment.GetNextFreeSpace();
             space.Owner = p;
+            p.Entity.ActionsChangeEvent += Entity_ActionsChangeEvent;
         }
 
         foreach (var e in enemies)
@@ -234,6 +243,7 @@ public class GameMaster : MonoBehaviour
         {
             var result = stepper.Invoke();
             playerStats[activePlayerIndex].remainingActionsLabel.text = entity.Actions.ToString();
+            if (entity.Actions == 0) turnController.SetPlayerTurnToFinish(activePlayerIndex);
 
             if (result == false)
             {
@@ -282,5 +292,23 @@ public class GameMaster : MonoBehaviour
         var actionCount = UnityEngine.Random.Range(1, 5);
         players[playerIndex].Entity.Actions = actionCount;
         playerStats[playerIndex].remainingActionsLabel.text = actionCount.ToString();
+    }
+
+    private void TurnController_AllPlayerTurnsFinished()
+    {
+        
+    }
+
+    private void TurnController_EnemyTurnFinshed()
+    {
+        playerStats[0].rerollButton.interactable = true;
+        playerStats[1].rerollButton.interactable = true;
+        playerStats[2].rerollButton.interactable = true;
+        playerStats[3].rerollButton.interactable = true;
+    }
+
+    private void Entity_ActionsChangeEvent(object sender, MapMangler.Entities.Entity.EntityValueChangeEventArgs<int> e)
+    {
+        
     }
 }
