@@ -1,6 +1,16 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+
+[Serializable]
+public struct PlayerStats
+{
+    public Button rerollButton;
+    public TMPro.TMP_Text remainingActionsLabel;
+    public TMPro.TMP_Text remainingHealthLabel;
+}
 
 public class GameMaster : MonoBehaviour
 {
@@ -20,7 +30,7 @@ public class GameMaster : MonoBehaviour
     private RoomSegment sampleTargetSegment;
 
     [SerializeField]
-    private PlayerBtnHandler[] handler;
+    private PlayerStats[] playerStats;
 
     private const float SecondsToMove = 2.0f;
 
@@ -33,11 +43,25 @@ public class GameMaster : MonoBehaviour
     private void OnEnable()
     {
         levelClickHandler.AreaClicked += LevelClickHandler_AreaClicked;
+
+        var counter = 0;
+        foreach(var player in playerStats)
+        {
+            int playerId = counter++;
+            player.rerollButton.onClick.AddListener(() =>
+            {
+                OnRerollButtonClick(playerId);
+            });
+        }
     }
 
     private void OnDisable()
     {
         levelClickHandler.AreaClicked -= LevelClickHandler_AreaClicked;
+        foreach (var player in playerStats)
+        {
+            player.rerollButton.onClick.RemoveAllListeners();
+        }
     }
 
     private void Start()
@@ -61,7 +85,7 @@ public class GameMaster : MonoBehaviour
         gameState.RunSetup();
 
         //StartCoroutine(Test());
-        SelectPlayer(0);
+        //SelectPlayer(0);
     }
 
     private void OnDestroy()
@@ -156,7 +180,7 @@ public class GameMaster : MonoBehaviour
         }
 
         ActivePlayer = players[index];
-        ActivePlayer.Entity.Actions = 3; // TODO
+        //ActivePlayer.Entity.Actions = 3; // TODO
     }
 
     private void LevelClickHandler_AreaClicked()
@@ -192,6 +216,7 @@ public class GameMaster : MonoBehaviour
             yield break;
         }
 
+
         var remainingSteps = Mathf.Max(steps - player.Entity.Actions, 0);
         Debug.Log(remainingSteps);
         var segmentList = moveAction.path.Elements;
@@ -222,8 +247,40 @@ public class GameMaster : MonoBehaviour
 
                 yield return MoveEntity(player, start.transform.position, end.transform.position);
                 yield return new WaitForSeconds(0.5f);
+
+                Debug.Log(player.Entity.Actions);
             }
         }
 
+        Debug.Log(player.Entity.Actions +" --- "+ remainingSteps + " "+ (player.Entity.Actions == 1 && remainingSteps == 0));
+        // Fix issues with non decreasing counter
+        if (player.Entity.Actions == 1 && remainingSteps == 0)
+        {
+            //player.Entity.Actions = 0;
+            (player.Entity as MapMangler.Entities.Player).EndTurn();
+        }
+    }
+
+    private void OnRerollButtonClick(int playerIndex)
+    {
+        SelectPlayer(playerIndex);
+        Debug.Log(
+            players[0].Entity.Actions + " " +
+            players[1].Entity.Actions + " " +
+            players[2].Entity.Actions + " " +
+            players[3].Entity.Actions);
+
+        if (
+             players[0].Entity.Actions > 0
+             || players[1].Entity.Actions > 0
+             || players[2].Entity.Actions > 0
+             || players[3].Entity.Actions > 0)
+        {
+            return;
+        }
+
+        var actionCount = UnityEngine.Random.Range(1, 5);
+        players[playerIndex].Entity.Actions = actionCount;
+        playerStats[playerIndex].remainingActionsLabel.text = actionCount.ToString();
     }
 }
