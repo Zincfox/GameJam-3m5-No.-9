@@ -36,6 +36,9 @@ public class GameMaster : MonoBehaviour
     [SerializeField]
     private MapMangler.Difficulty.DifficultyLevel difficultyLevel;
 
+    [SerializeField]
+    private GameObject gameOverScreen;
+
     private const float SecondsToMove = 2.0f;
 
     private List<EntityBehaviour> entities = new List<EntityBehaviour>();
@@ -107,7 +110,6 @@ public class GameMaster : MonoBehaviour
         SetupGameState();
         //StartCoroutine(Test());
         //SelectPlayer(0);
-
     }
 
     private ref PlayerStats GetPlayerStats(MapMangler.Entities.Player player)
