@@ -7,8 +7,11 @@ namespace MapMangler.Entities
     public class StatBlock
     {
         public int MaxHealth;
-        public int Armor=0;
-        public int Damage=1;
-        public bool Ranged=false;
+        public int Armor;
+        public int Damage;
+        public bool Ranged;
+        public int MinRollActions;
+        public int MaxRollActions;
+        public int BonusActions;
     }
 }

@@ -42,10 +42,22 @@ namespace MapMangler
                 if (entity is Player)
                 {
                     entity.stats.MaxHealth = difficulty.PlayerHP;
+                    entity.stats.Armor = 0;
+                    entity.stats.Damage = 1;
+                    entity.stats.BonusActions = 0;
+                    entity.stats.MinRollActions = 1;
+                    entity.stats.MaxRollActions = 4;
+                    entity.stats.Ranged = false;
                 }
                 else if (entity is NPC)
                 {
                     entity.stats.MaxHealth = difficulty.EnemyHP;
+                    entity.stats.Armor = 0;
+                    entity.stats.Damage = 1;
+                    entity.stats.BonusActions = difficulty.EnemyActions;
+                    entity.stats.MinRollActions = 0;
+                    entity.stats.MaxRollActions = 0;
+                    entity.stats.Ranged = false;
                 }
                 entity.Health = entity.stats.MaxHealth;
             }

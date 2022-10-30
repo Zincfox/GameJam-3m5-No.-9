@@ -4,6 +4,7 @@ using System.Text;
 using System.Linq;
 using MapMangler.Entities;
 using MapMangler.Rooms;
+using MapMangler.Actions;
 
 namespace MapMangler.Difficulty
 {
@@ -20,7 +21,7 @@ namespace MapMangler.Difficulty
             this.gameState = gameState;
             this.npc = npc;
             this.gameState.enemyVisionTracker.EntityVisionChangedEvent += EnemyVisionTracker_EntityVisionChangedEvent;
-            foreach(var room in this.gameState.enemyVisionTracker.GetEntityVisibleRooms(npc))
+            foreach (var room in this.gameState.enemyVisionTracker.GetEntityVisibleRooms(npc))
             {
                 GainedVision(room);
             }
@@ -73,72 +74,11 @@ namespace MapMangler.Difficulty
 
         public void StartTurn()
         {
-            npc.Actions = gameState.difficulty.EnemyActions;
+            npc.Actions = npc.stats.BonusActions + GlobalRandom.random.Next(npc.stats.MinRollActions, npc.stats.MaxRollActions + 1);
         }
 
-        public abstract class GameAction
-        {
-            public Entity Source { get; }
 
-            public GameAction(Entity source)
-            {
-                Source = source;
-            }
 
-            public abstract void Perform();
-        }
-
-        public class AttackAction : GameAction
-        {
-            public AttackAction(Entity source, Entity target, int damage) : base(source)
-            {
-                this.target = target;
-                this.damage = damage;
-            }
-
-            public readonly Entity target;
-            public readonly int damage;
-
-            public override void Perform()
-            {
-                if (Source.Actions < 0)
-                {
-                    return;
-                }
-                Source.Actions--;
-                target.ReceiveBlockableDamage(damage);
-            }
-        }
-
-        public class MoveAction : GameAction
-        {
-            public readonly RoomSegmentPath path;
-
-            public MoveAction(Entity source, RoomSegmentPath path) : base(source)
-            {
-                this.path = path;
-            }
-
-            public Func<bool> GetStepper()
-            {
-                IEnumerator<RoomSegment> enumerator = path.roomSegments.Skip(1).GetEnumerator();
-                bool stepper()
-                {
-                    if (!enumerator.MoveNext()) return false;
-                    if (Source.Actions <= 0) return false;
-                    Source.Actions--;
-                    Source.Location = enumerator.Current;
-                    return true;
-                }
-                return stepper;
-            }
-
-            public override void Perform()
-            {
-                Func<bool> stepper = GetStepper();
-                while (stepper()) { }
-            }
-        }
 
         public GameAction? ObtainNextAction()
         {
@@ -149,21 +89,29 @@ namespace MapMangler.Difficulty
             var target = ChooseMinBy(playersInAttackRange, p => p.Health);
             if (target != null)
             {
-                assumedHealthLocations.Clear();
-                return new AttackAction(npc, target, npc.stats.Damage);
+                var attackAction = npc.AttemptAttack(target);
+                if (attackAction != null)
+                {
+                    attackAction.ActionPerformedEvent += (_, _2) => assumedHealthLocations.Clear();
+                    return attackAction;
+                }
             }
             ISet<Room> vision = gameState.enemyVisionTracker.GetEntityVisibleRooms(npc);
             IList<RoomSegmentPath> shortestPathsToPlayers = Navigators.DefaultSegmentNavigator.FindShortestPaths(location, s =>
             {
-                return (!vision.Contains(s.parentRoom));
+                return !vision.Contains(s.parentRoom);
             });
 
             var pathToLowestPlayer = ChooseMinBy(shortestPathsToPlayers, p => p.EndSegment!.Entities.Min(e => e.Health));
             if (pathToLowestPlayer != null)
             {
-                assumedHealthLocations.Clear();
                 pathToLowestPlayer.LimitTo(1);
-                return new MoveAction(npc, pathToLowestPlayer);
+                var moveAction = npc.AttemptMove(pathToLowestPlayer, false);
+                if (moveAction != null)
+                {
+                    moveAction.ActionPerformedEvent += (_, _2) => assumedHealthLocations.Clear();
+                    return moveAction;
+                }
             }
             IList<RoomSegmentPath> shortestPathsToAssumedPlayers = Navigators.DefaultSegmentNavigator.FindShortestPaths(location, s =>
             {
@@ -177,7 +125,8 @@ namespace MapMangler.Difficulty
             if (pathToLowestAssumedPlayer != null)
             {
                 pathToLowestAssumedPlayer.LimitTo(1);
-                return new MoveAction(npc, pathToLowestAssumedPlayer);
+                var moveAction = npc.AttemptMove(pathToLowestAssumedPlayer, false);
+                return moveAction;
             }
             return EndTurn();
         }
