@@ -94,7 +94,6 @@ public class GameMaster : MonoBehaviour
             entities.Add(p);
             var space = startRoomSegment.GetNextFreeSpace();
             space.Owner = p;
-            p.Entity.ActionsChangeEvent += Entity_ActionsChangeEvent;
         }
 
         foreach (var e in enemies)
@@ -128,6 +127,7 @@ public class GameMaster : MonoBehaviour
     private void Player_ActionsChangeEvent(object sender, MapMangler.Entities.Entity.EntityValueChangeEventArgs<int> e)
     {
         GetPlayerStats((MapMangler.Entities.Player)e.entity).remainingActionsLabel.text = e.to.ToString();
+        if (e.entity.Actions == 0) turnController.SetPlayerTurnToFinish(activePlayerIndex);
     }
 
     private void OnDestroy()
@@ -327,10 +327,5 @@ public class GameMaster : MonoBehaviour
         playerStats[1].rerollButton.interactable = true;
         playerStats[2].rerollButton.interactable = true;
         playerStats[3].rerollButton.interactable = true;
-    }
-
-    private void Entity_ActionsChangeEvent(object sender, MapMangler.Entities.Entity.EntityValueChangeEventArgs<int> e)
-    {
-        
     }
 }
