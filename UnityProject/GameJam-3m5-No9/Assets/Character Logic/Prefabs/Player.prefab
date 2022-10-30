@@ -46,7 +46,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b5efa1c1f3ded401393abe83d42ea434, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  hotspotCollection: {fileID: 11400000, guid: 98cfc9d1431ab436fa2ca701f09147b8, type: 2}
   hotspotPrefab: {fileID: 3396288297631232627, guid: e864f3ab51a4140b98a6cb0587350664, type: 3}
   hotspot: {fileID: 0}
   meshRenderer: {fileID: 2656929936948037165}
@@ -159,7 +158,7 @@ CapsuleCollider:
   m_GameObject: {fileID: 4615680057518407260}
   m_Material: {fileID: 0}
   m_IsTrigger: 0
-  m_Enabled: 1
+  m_Enabled: 0
   m_Radius: 0.5
   m_Height: 2
   m_Direction: 1
