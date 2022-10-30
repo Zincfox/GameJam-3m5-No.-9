@@ -81,6 +81,8 @@ public class GameMaster : MonoBehaviour
         {
             p.Entity.Location = startRoomSegment.Segment;
             p.Entity.LocationChangeEvent += Entity_LocationChangeEvent;
+            p.Entity.HealthChangeEvent += Player_HealthChangeEvent;
+            p.Entity.ActionsChangeEvent += Player_ActionsChangeEvent;
             entities.Add(p);
             var space = startRoomSegment.GetNextFreeSpace();
             space.Owner = p;
@@ -92,10 +94,31 @@ public class GameMaster : MonoBehaviour
             e.Entity.LocationChangeEvent += Entity_LocationChangeEvent;
             entities.Add(e);
         }
-        GameState.RunSetup();
-
+        SetupGameState();
         //StartCoroutine(Test());
         //SelectPlayer(0);
+    }
+
+    private ref PlayerStats GetPlayerStats(MapMangler.Entities.Player player)
+    {
+        for (int i = 0; i < playerStats.Length;i++)
+        {
+            if (players[i].Entity == player)
+            {
+                return ref playerStats[i];
+            }
+        }
+        throw new Exception($"Could not find GameObject-Player for Logic-Player {player.entityID}");
+    }
+
+    private void Player_HealthChangeEvent(object sender, MapMangler.Entities.Entity.EntityValueChangeEventArgs<int> e)
+    {
+        GetPlayerStats((MapMangler.Entities.Player)e.entity).remainingHealthLabel.text = e.to.ToString();
+    }
+
+    private void Player_ActionsChangeEvent(object sender, MapMangler.Entities.Entity.EntityValueChangeEventArgs<int> e)
+    {
+        GetPlayerStats((MapMangler.Entities.Player)e.entity).remainingActionsLabel.text = e.to.ToString();
     }
 
     private void OnDestroy()
@@ -114,7 +137,8 @@ public class GameMaster : MonoBehaviour
 
     private void SetupGameState()
     {
-        GameStateReadyEvent?.Invoke(this, System.EventArgs.Empty);
+        GameStateReadyEvent?.Invoke(this, EventArgs.Empty);
+        GameState.RunSetup();
     }
 
     private void Entity_LocationChangeEvent(object sender, MapMangler.Entities.Entity.EntityValueChangeEventArgs<MapMangler.Rooms.RoomSegment> e)
@@ -233,7 +257,7 @@ public class GameMaster : MonoBehaviour
         for (var index = 0; index < limit; ++index)
         {
             var result = stepper.Invoke();
-            playerStats[activePlayerIndex].remainingActionsLabel.text = entity.Actions.ToString();
+            //playerStats[activePlayerIndex].remainingActionsLabel.text = entity.Actions.ToString();
 
             if (result == false)
             {
@@ -281,6 +305,6 @@ public class GameMaster : MonoBehaviour
 
         var actionCount = UnityEngine.Random.Range(1, 5);
         players[playerIndex].Entity.Actions = actionCount;
-        playerStats[playerIndex].remainingActionsLabel.text = actionCount.ToString();
+        //playerStats[playerIndex].remainingActionsLabel.text = actionCount.ToString();
     }
 }
