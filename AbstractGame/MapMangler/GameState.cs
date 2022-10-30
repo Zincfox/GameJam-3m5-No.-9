@@ -14,6 +14,7 @@ namespace MapMangler
         public readonly VisionTracker playerVisionTracker;
         public readonly VisionTracker.EntityVisionTracker enemyVisionTracker;
         public readonly Difficulty.DifficultyParameters difficulty;
+        public static Action<String>? LOGGER=null;
 
         public GameState(
             VisionTracker playerVisionTracker,

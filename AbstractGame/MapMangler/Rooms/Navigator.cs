@@ -11,7 +11,7 @@ namespace MapMangler.Rooms
         public readonly static Navigator<Room, RoomPath> DefaultRoomNavigator = new Navigator<Room, RoomPath>(r => r.NeighbouringRooms);
     }
 
-    public class Navigator<T, P> where P : GamePath<T>, new() where T:notnull
+    public class Navigator<T, P> where P : GamePath<T>, new() where T : notnull
     {
 
         public delegate IEnumerable<(int cost, T neighbour)> NeighbourCostFunction(T source);
@@ -49,12 +49,13 @@ namespace MapMangler.Rooms
                 source
             };
             Dictionary<T, Tuple<int, IList<T>>> predecessors = new Dictionary<T, Tuple<int, IList<T>>>();
-            predecessors.Add(source, new Tuple<int, IList<T>>(0, new List<T>()));
+            predecessors.Add(source, new Tuple<int, IList<T>>(0, new List<T>() { source }));
             int? foundAtCost = null;
             List<T> matchingTs = new List<T>();
             while (fringe.Count > 0)
             {
                 T currentT = fringe[0];
+                GameState.LOGGER?.Invoke($"Visiting {currentT}");
                 (int currentCost, _) = predecessors[currentT];
                 if (foundAtCost != null && currentCost > foundAtCost) break;
                 fringe.RemoveAt(0);
@@ -69,10 +70,11 @@ namespace MapMangler.Rooms
 
                 foreach ((int cost, T neighbour) in neighbours(currentT))
                 {
+                    int newCost = currentCost + cost;
                     if (visited.Contains(neighbour)) continue;
+                    if (!fringe.Contains(neighbour)) fringe.Add(neighbour);
                     if (predecessors.TryGetValue(neighbour, out var oldInformation))
                     {
-                        int newCost = currentCost + cost;
                         (int oldCost, IList<T> oldTs) = oldInformation;
                         if (newCost > oldCost) continue;
                         if (newCost == oldCost)
@@ -85,16 +87,29 @@ namespace MapMangler.Rooms
                             predecessors[neighbour] = new Tuple<int, IList<T>>(newCost, new List<T>() { currentT });
                         }
                     }
+                    else
+                    {
+                        predecessors[neighbour] = new Tuple<int, IList<T>>(newCost, new List<T>() { currentT });
+                    }
                 }
 
-                fringe.Sort((a, b) => predecessors[a].Item1 - predecessors[b].Item1);
+                fringe.Sort((a, b) =>
+                {
+                    return predecessors[a].Item1 - predecessors[b].Item1;
+                });
             }
-            return matchingTs.SelectMany(target => TraversePredecessors(predecessors, target)).ToList();
+            GameState.LOGGER?.Invoke($"Predecessors: {string.Join(',', predecessors.Select(e => $"{e.Key}:({e.Value.Item1})#[{string.Join(',', e.Value.Item2)}]"))}");
+            GameState.LOGGER?.Invoke($"Traversing backwards: [{string.Join(',', matchingTs)}]");
+            IList<P> result = matchingTs.SelectMany(target => TraversePredecessors(predecessors, target)).ToList();
+            GameState.LOGGER?.Invoke($"Result: [{string.Join(',', result)}]");
+            return result;
         }
 
         private IEnumerable<P> TraversePredecessors(IDictionary<T, Tuple<int, IList<T>>> predecessors, T target)
         {
-            (_, IList<T> previousTs) = predecessors[target];
+            GameState.LOGGER?.Invoke($"Path-Element: {target}");
+            (int cost, IList<T> previousTs) = predecessors[target];
+            GameState.LOGGER?.Invoke($"Predecessor: {cost}#[{string.Join(',', previousTs)}]");
             return previousTs.SelectMany(r =>
             {
                 if (target.Equals(r))

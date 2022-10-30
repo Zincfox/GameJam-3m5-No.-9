@@ -39,5 +39,10 @@ namespace MapMangler.Rooms
         public Room? StartRoom => StartSegment?.parentRoom;
         public RoomSegment? EndSegment => roomSegments.Count > 0 ? roomSegments[roomSegments.Count - 1] : null;
         public Room? EndRoom => EndSegment?.parentRoom;
+
+        public override string ToString()
+        {
+            return $"SegmentPath({string.Join("->",roomSegments)})";
+        }
     }
 }

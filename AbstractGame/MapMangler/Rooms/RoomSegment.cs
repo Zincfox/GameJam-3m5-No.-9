@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using MapMangler.Entities;
+using System.Linq;
 
 namespace MapMangler.Rooms
 {
@@ -48,6 +49,11 @@ namespace MapMangler.Rooms
         }
 
         public event EventHandler<RoomSegmentContentChangeEventArgs>? EntitiesChangeEvent;
+
+        public override string ToString()
+        {
+            return $"Segment({id}, parent:{parentRoom.RoomID}, neighbours: [{string.Join(',',neighbours.Select(n=>n.id))}], entities: [{string.Join(',',entities.Select(e=>e.entityID))}])";
+        }
 
         public class RoomSegmentContentChangeEventArgs : EventArgs
         {

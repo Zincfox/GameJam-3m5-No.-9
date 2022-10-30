@@ -70,8 +70,10 @@ namespace MapMangler.Entities
         public virtual MoveAction? AttemptMoveTo(RoomSegment targetSegment, bool allowPartialPaths = false)
         {
             var location = Location;
+            GameState.LOGGER?.Invoke($"Attempting Movement from {location} to {targetSegment}");
             if (location == null) return null;
             var path = Navigators.DefaultSegmentNavigator.FindShortestPath(location, targetSegment);
+            GameState.LOGGER?.Invoke($"Found path {path} (elements: {path?.Elements?.Count})");
             if (path == null) return null;
             return AttemptMove(path, allowPartialPaths);
         }

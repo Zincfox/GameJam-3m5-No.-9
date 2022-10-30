@@ -27,5 +27,10 @@ namespace MapMangler.Rooms
             segments.Add(segment);
             return segment;
         }
+
+        public override string ToString()
+        {
+            return $"Room({RoomID}, segments:[{string.Join(',', segments.Select(s=>s.id))}])";
+        }
     }
 }
