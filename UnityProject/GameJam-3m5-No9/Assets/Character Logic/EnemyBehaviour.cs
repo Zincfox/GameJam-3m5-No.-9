@@ -1,4 +1,6 @@
-﻿public class EnemyBehaviour : EntityBehaviour
+﻿using UnityEngine;
+
+public class EnemyBehaviour : EntityBehaviour
 {
     private MapMangler.Difficulty.NPC_AI ai;
 
@@ -24,6 +26,7 @@
         {
             yield return null;
             var nextAction = ai.ObtainNextAction();
+            Debug.Log(nextAction);
             if (nextAction == null) break;
             if (nextAction is MapMangler.Actions.MoveAction moveAction)
             {

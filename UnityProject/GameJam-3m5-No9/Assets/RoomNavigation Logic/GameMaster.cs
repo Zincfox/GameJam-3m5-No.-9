@@ -101,7 +101,9 @@ public class GameMaster : MonoBehaviour
         {
             e.Entity.Location = startRoomSegment.Segment;
             e.Entity.LocationChangeEvent += Enemy_LocationChangeEvent;
+            e.Entity.ActionsChangeEvent += Enemy_ActionsChangeEvent;
             entities.Add(e);
+            GameState.enemyVisionTracker.AddVisionSource(e.Entity);
         }
         SetupGameState();
         //StartCoroutine(Test());
@@ -146,6 +148,14 @@ public class GameMaster : MonoBehaviour
             var index = GetPlayerStatsIndex((MapMangler.Entities.Player)e.entity);
             turnController.SetPlayerTurnToFinish(index);
             playerStats[index].rerollButton.interactable = false;
+        }
+    }
+
+    private void Enemy_ActionsChangeEvent(object sender, MapMangler.Entities.Entity.EntityValueChangeEventArgs<int> e)
+    {
+        if(e.entity.Actions == 0)
+        {
+            turnController.SetEnemyTurnToFinish();
         }
     }
 
