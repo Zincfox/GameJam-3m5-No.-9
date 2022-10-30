@@ -10,6 +10,13 @@ public class Room : MonoBehaviour
 
     public MapMangler.Rooms.Room RoomArea { get; } = new MapMangler.Rooms.Room();
 
+    private void Awake()
+    {
+        GameMaster gm = FindObjectOfType<GameMaster>();
+        if (gm == null) throw new System.Exception("Could not locate GameMaster in scene");
+        gm.GameStateReadyEvent += (gs, _) => ((MapMangler.GameState)gs).map.AddRoom(RoomArea);
+    }
+
     void Start()
     {
         //InitRoomSegments();

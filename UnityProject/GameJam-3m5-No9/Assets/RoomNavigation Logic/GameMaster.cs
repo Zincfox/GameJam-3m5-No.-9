@@ -22,11 +22,19 @@ public class GameMaster : MonoBehaviour
     [SerializeField]
     private PlayerBtnHandler[] handler;
 
+    [SerializeField]
+    private MapMangler.Difficulty.DifficultyLevel difficultyLevel;
+
     private const float SecondsToMove = 2.0f;
 
     private List<EntityBehaviour> entities = new List<EntityBehaviour>();
 
-    private MapMangler.GameState gameState = new MapMangler.GameState(MapMangler.Difficulty.DifficultyParameters.fromLevel(MapMangler.Difficulty.DifficultyLevel.EASY, 4));
+    public MapMangler.GameState GameState { get; private set; }
+
+    private void Awake()
+    {
+        GameState = new MapMangler.GameState(MapMangler.Difficulty.DifficultyParameters.fromLevel(difficultyLevel, 4));
+    }
 
     public PlayerBehaviour ActivePlayer { get; set; }
 
@@ -58,7 +66,7 @@ public class GameMaster : MonoBehaviour
             e.Entity.LocationChangeEvent += Entity_LocationChangeEvent;
             entities.Add(e);
         }
-        gameState.RunSetup();
+        GameState.RunSetup();
 
         //StartCoroutine(Test());
         SelectPlayer(0);
@@ -78,6 +86,11 @@ public class GameMaster : MonoBehaviour
         }
     }
 
+    private void SetupGameState()
+    {
+        GameStateReadyEvent?.Invoke(this, System.EventArgs.Empty);
+    }
+
     private void Entity_LocationChangeEvent(object sender, MapMangler.Entities.Entity.EntityValueChangeEventArgs<MapMangler.Rooms.RoomSegment> e)
     {
         /*var entity = e.entity;
@@ -86,6 +99,8 @@ public class GameMaster : MonoBehaviour
         var script = entities.Find(script => script.Entity.Equals(e.entity));
         MoveAvatarToTargetLocation(script, from, to);*/
     }
+
+    public event System.EventHandler? GameStateReadyEvent;
 
     private IEnumerator Test()
     {
@@ -109,6 +124,20 @@ public class GameMaster : MonoBehaviour
         Debug.Log(stepper.Invoke());
         Debug.Log(stepper.Invoke());
         Debug.Log(stepper.Invoke());
+    }
+
+    public IEnumerator ProcessNPCTurns()
+    {
+        foreach(EnemyBehaviour enemy in entities)
+        {
+            var iterator = enemy.MakeNPCTurn();
+            bool again;
+            do
+            {
+                again = iterator.MoveNext();
+                yield return null;
+            } while (again);
+        }
     }
 
     public void MoveAvatarToTargetLocation(EntityBehaviour entity, MapMangler.Rooms.RoomSegment from, MapMangler.Rooms.RoomSegment to)
