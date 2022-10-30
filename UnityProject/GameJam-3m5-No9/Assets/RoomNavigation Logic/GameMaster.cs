@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
+using Random=UnityEngine.Random;
 
 [Serializable]
 public struct PlayerStats
@@ -35,6 +36,9 @@ public class GameMaster : MonoBehaviour
 
     [SerializeField]
     private MapMangler.Difficulty.DifficultyLevel difficultyLevel;
+
+    [SerializeField]
+    private GameObject gameOverScreen;
 
     private const float SecondsToMove = 2.0f;
 
@@ -83,6 +87,15 @@ public class GameMaster : MonoBehaviour
         turnController.EnemyTurnFinshed -= TurnController_EnemyTurnFinshed;
     }
 
+    public AudioSource AudioLaughing;
+    public AudioClip[] AudioArrayLaughing;
+    private void PlayAudioLaughing()
+    {
+        var randomClipIndex = Random.Range(0, AudioArrayLaughing.Length);
+
+        AudioLaughing.clip = AudioArrayLaughing[randomClipIndex];
+        AudioLaughing.Play();
+    }
     private void Start()
     {
         //MapMangler.GameState.LOGGER = Debug.Log;
@@ -159,6 +172,20 @@ public class GameMaster : MonoBehaviour
         }
     }
 
+    public float period = 0.0f;
+    public float nextLaughingInterval = 12f;
+    void Update()
+    {
+        if (period > nextLaughingInterval)
+        {
+            nextLaughingInterval = 4f + Random.Range(0f, 22f);
+            period = 0;
+            
+            PlayAudioLaughing();
+        }
+        period += UnityEngine.Time.deltaTime;
+    }
+    
     private void OnDestroy()
     {
         /*foreach(var p in players)
@@ -220,8 +247,11 @@ public class GameMaster : MonoBehaviour
         }
     }
 
+    public AudioSource AudioSteps;
     private IEnumerator MoveEntity(EntityBehaviour entity, Vector3 startPos, Vector3 targetPos)
     {
+        AudioSteps.Play();
+
         void SetEntityPosition(EntityBehaviour entity, Vector3 pos)
         {
             entity.transform.position = pos;
